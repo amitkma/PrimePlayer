@@ -1,0 +1,130 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
+
+android {
+    compileSdkVersion compileSdk_version
+    defaultConfig {
+        applicationId "com.github.amitkma.primeplayer"
+        minSdkVersion minSdk_version
+        targetSdkVersion targetSdk_version
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+
+    packagingOptions {
+        exclude 'LICENSE.txt'
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/ASL2.0'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/LICENSE'
+    }
+
+    lintOptions {
+        quiet true
+        abortOnError false
+        ignoreWarnings true
+        disable 'InvalidPackage'            //Some libraries have issues with this.
+        disable 'OldTargetApi'              //Lint gives this warning but SDK 20 would be Android L Beta.
+        disable 'IconDensities'             //For testing purpose. This is safe to remove.
+        disable 'IconMissingDensityFolder'  //For testing purpose. This is safe to remove.
+    }
+
+    buildTypes {
+        release {
+            postprocessing {
+                removeUnusedCode false
+                removeUnusedResources false
+                obfuscate false
+                optimizeCode false
+                proguardFile 'proguard-rules.pro'
+            }
+        }
+    }
+
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+        main.java.srcDirs += [file("$buildDir/generated/source/kapt/main")]
+        test.java.srcDirs += 'src/test/kotlin'
+        androidTest.java.srcDirs += 'src/androidTest/kotlin'
+    }
+
+}
+
+dependencies {
+    // Application Dependencies
+    implementation mainApplication.kotlin
+
+    implementation mainApplication.support.appCompat
+    implementation mainApplication.support.v4
+    implementation mainApplication.support.cardView
+    implementation mainApplication.support.recyclerView
+    implementation mainApplication.support.design
+    implementation mainApplication.support.constraintLayout
+    implementation mainApplication.support.annotations
+
+    implementation mainApplication.dagger.runtime
+    implementation mainApplication.dagger.androidRuntime
+    kapt mainApplication.dagger.compiler
+    kapt mainApplication.dagger.androidCompiler
+
+    implementation mainApplication.room.runtime
+    kapt mainApplication.room.compiler
+
+    implementation mainApplication.lifecycle.runtime
+    implementation mainApplication.lifecycle.extensions
+    kapt mainApplication.lifecycle.compiler
+
+    implementation mainApplication.exo.core
+    implementation mainApplication.exo.ui
+
+    implementation mainApplication.glide
+
+    implementation development.timber
+
+    // Unit & Integration Test Dependencies
+    testImplementation unitTesting.junit
+    testImplementation unitTesting.kotlin
+    testImplementation unitTesting.kotlinTest
+    testImplementation unitTesting.robolectric
+    testImplementation unitTesting.mockito
+    testImplementation unitTesting.kluent
+
+    testImplementation (archTesting.core, {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+
+    // Acceptance Test Dependencies
+    androidTestImplementation acceptanceTesting.support.appCompat
+    androidTestImplementation acceptanceTesting.support.recyclerView
+    androidTestImplementation acceptanceTesting.support.cardView
+    androidTestImplementation acceptanceTesting.support.design
+
+    androidTestImplementation acceptanceTesting.testRunner
+    androidTestImplementation acceptanceTesting.testRules
+    androidTestImplementation acceptanceTesting.annotations
+    androidTestImplementation (acceptanceTesting.espressoCore, {
+        exclude group: 'com.android.support', module: 'support-annotations'
+        exclude group: 'com.google.code.findbugs', module: 'jsr305'
+    })
+    androidTestImplementation (acceptanceTesting.espressoIntents, {
+        exclude group: 'com.android.support', module: 'support-annotations'
+        exclude group: 'com.google.code.findbugs', module: 'jsr305'
+    })
+    androidTestImplementation (acceptanceTesting.espressoContrib, {
+        exclude group: 'com.android.support', module: 'support-annotations'
+        exclude group: 'com.google.code.findbugs', module: 'jsr305'
+    })
+
+    androidTestImplementation acceptanceTesting.dexmaker
+    androidTestImplementation acceptanceTesting.mockito
+
+    // Development Dependencies
+    debugImplementation development.leakCanary
+    releaseImplementation development.leakCanaryNoop
+}
+kapt {
+    generateStubs = true
+}
