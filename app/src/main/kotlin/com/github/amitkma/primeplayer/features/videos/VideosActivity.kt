@@ -9,6 +9,8 @@ import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.v4.app.ActivityCompat
 import android.support.v7.app.AppCompatActivity
+import android.support.v7.widget.RecyclerView
+import android.support.v7.widget.StaggeredGridLayoutManager
 import android.util.Log
 import android.view.View
 import com.github.amitkma.primeplayer.R
@@ -17,6 +19,7 @@ import com.github.amitkma.primeplayer.framework.extension.verifyPermissions
 import com.github.amitkma.primeplayer.framework.vo.Resource
 import com.github.amitkma.primeplayer.framework.vo.ResourceState
 import dagger.android.AndroidInjection
+import kotlinx.android.synthetic.main.toolbar.*
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -51,12 +54,18 @@ class VideosActivity : AppCompatActivity() {
 
     private lateinit var view: View
 
+    @Inject lateinit var videosAdapter: VideosAdapter
+
+    private lateinit var videosRecyclerView: RecyclerView
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         // Inject this activity using Dagger
         AndroidInjection.inject(this)
+        setSupportActionBar(toolbar)
+        initializeView()
 
         videoViewModel = ViewModelProviders.of(this, viewModelFactory)
                 .get(VideoViewModel::class.java)
@@ -68,6 +77,13 @@ class VideosActivity : AppCompatActivity() {
         } else {
             requestPermission()
         }
+    }
+
+    private fun initializeView() {
+        videosRecyclerView = findViewById(R.id.videoList)
+        videosRecyclerView.layoutManager = StaggeredGridLayoutManager(3,
+                StaggeredGridLayoutManager.VERTICAL)
+        videosRecyclerView.adapter = videosAdapter
     }
 
     /**
@@ -88,10 +104,8 @@ class VideosActivity : AppCompatActivity() {
     }
 
     private fun setupScreenForSuccess(data: List<Video>?) {
-        Timber.d("SUCCESS SCREEN")
         if (data != null && data.isNotEmpty()) {
-            Timber.d("data lengths is " + data.size)
-            // TODO: Show videos list to view.
+            videosAdapter.list = data
         } else {
             Timber.d("data is empty")
             // TODO: Show empty list.
@@ -109,13 +123,11 @@ class VideosActivity : AppCompatActivity() {
 
     /*private val emptyListener = object : EmptyListener {
         override fun onCheckAgainClicked() {
-            browseBufferoosViewModel.fetchBufferoos()
         }
     }
 
     private val errorListener = object : ErrorListener {
         override fun onTryAgainClicked() {
-            browseBufferoosViewModel.fetchBufferoos()
         }
     }*/
 
