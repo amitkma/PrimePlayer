@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">PrimePlayer</string>
+    <string name="app_name">Prime Player</string>
     <string name="permission_storage_rationale">Storage permission is needed to load media files.
     </string>
     <string name="ok">OK</string>

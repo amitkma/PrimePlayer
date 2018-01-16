@@ -23,3 +23,6 @@ fun ViewGroup.inflate(@LayoutRes layoutRes: Int): View = LayoutInflater.from(con
 // Function to load image from a url using Glide.
 fun ImageView.loadFromUrl(url: String) = Glide.with(this.context.applicationContext)
         .load(url).transition(DrawableTransitionOptions.withCrossFade()).into(this)!!
+// Function to load image from a uri using Glide
+fun ImageView.loadFromUri(path: String) = Glide.with(this.context.applicationContext)
+        .load("file"+path).transition(DrawableTransitionOptions.withCrossFade()).into(this)!!
