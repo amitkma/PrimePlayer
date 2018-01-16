@@ -18,7 +18,7 @@ ext {
     dagger_version = '2.11'
     javaxAnnotations_version = '1.0'
     javaxInject_version = '1'
-    kotlin_version = '1.1.60'
+    kotlin_version = '1.2.10'
     arch_version = '1.0.0'
     constraint_layout = '1.0.2'
     exo_version = '2.6.1'
@@ -50,7 +50,7 @@ ext {
     ]
 
     mainApplication = [
-            kotlin   : "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version",
+            kotlin   : "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version",
 
             support  : support,
 
