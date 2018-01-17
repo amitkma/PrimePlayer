@@ -31,14 +31,14 @@ class VideosRepository
         val columnId: Int
         val thumbnail: Int
 
-        var absolutePathOfImage: String?
+        var absolutePathOfVideo: String?
 
         val projection = arrayOf(MediaStore.MediaColumns.DATA,
                 MediaStore.Video.Media.BUCKET_DISPLAY_NAME, MediaStore.Video.Media._ID,
                 MediaStore.Video.Thumbnails.DATA)
 
         // Sort on the basis of date taken ie from most recent to least recent.
-        val orderBy = MediaStore.Images.Media.DATE_TAKEN
+        val orderBy = MediaStore.Video.Media.DATE_MODIFIED
         cursor = context.contentResolver.query(uri, projection, null, null,
                 orderBy + " DESC")
 
@@ -49,14 +49,14 @@ class VideosRepository
         thumbnail = cursor.getColumnIndexOrThrow(MediaStore.Video.Thumbnails.DATA)
 
         while (cursor.moveToNext()) {
-            absolutePathOfImage = cursor.getString(columnIndexData)
-            Log.e("Column", absolutePathOfImage)
+            absolutePathOfVideo = cursor.getString(columnIndexData)
+            Log.e("Column", absolutePathOfVideo)
             Log.e("Folder", cursor.getString(columnIndexFolderName))
             Log.e("column_id", cursor.getString(columnId))
             Log.e("thum", cursor.getString(thumbnail))
 
             val video = Video(
-                    absolutePathOfImage, cursor.getString(thumbnail))
+                    absolutePathOfVideo, cursor.getString(thumbnail))
             videos.add(video)
         }
         cursor.close() // Close and invalidate the cursor.

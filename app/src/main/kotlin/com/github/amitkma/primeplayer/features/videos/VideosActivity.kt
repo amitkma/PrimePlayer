@@ -4,6 +4,7 @@ import android.Manifest
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProvider
 import android.arch.lifecycle.ViewModelProviders
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.support.design.widget.Snackbar
@@ -60,7 +61,7 @@ class VideosActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_videos)
 
         // Inject this activity using Dagger
         AndroidInjection.inject(this)
@@ -84,6 +85,13 @@ class VideosActivity : AppCompatActivity() {
         videosRecyclerView.layoutManager = StaggeredGridLayoutManager(3,
                 StaggeredGridLayoutManager.VERTICAL)
         videosRecyclerView.adapter = videosAdapter
+        videosAdapter.clickListener = { video ->
+            run {
+                val intent = Intent(this, VideoPlayerActivity::class.java)
+                intent.putExtra("video_uri", video.path)
+                startActivity(intent)
+            }
+        }
     }
 
     /**
