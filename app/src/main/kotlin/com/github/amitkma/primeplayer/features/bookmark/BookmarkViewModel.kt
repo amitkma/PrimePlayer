@@ -5,16 +5,13 @@ import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.ViewModel
 import com.github.amitkma.primeplayer.features.bookmark.domain.model.Bookmark
 import com.github.amitkma.primeplayer.features.bookmark.domain.usecase.BookmarkUseCase
-import com.github.amitkma.primeplayer.features.videos.domain.model.Video
-import com.github.amitkma.primeplayer.features.videos.domain.usecase.VideoUseCase
 import com.github.amitkma.primeplayer.framework.interactor.UseCase
-import com.github.amitkma.primeplayer.framework.vo.Resource
-import com.github.amitkma.primeplayer.framework.vo.ResourceState
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
- * ViewModel responsible for getting data from a [BookmarkUse]
+ * Created by falcon on 17/1/18.
+ *
+ * ViewModel responsible for getting data from a [BookmarkUseCase]
  * and handling events from [BookmarkActivity].
  */
 class BookmarkViewModel

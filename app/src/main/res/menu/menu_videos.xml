@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-    <item android:id="@+id/item_bookmark_menu"
-        android:title="@string/bookmarks"
+    <item
+        android:id="@+id/item_bookmark_menu"
         android:orderInCategory="1"
-        app:showAsAction="always"
-        />
+        android:title="@string/bookmarks"
+        app:showAsAction="always" />
 </menu>

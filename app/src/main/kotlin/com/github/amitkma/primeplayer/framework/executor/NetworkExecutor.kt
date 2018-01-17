@@ -6,6 +6,8 @@ import java.util.concurrent.ThreadFactory
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
+ * Created by falcon on 15/1/18.
+ *
  * Implementation of a [Executor] to execute a task on a thread from Network Thread Pool.
  */
 internal class NetworkExecutor(numberOfThreads: Int, threadIdentifier: String) : Executor {

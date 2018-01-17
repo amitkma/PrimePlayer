@@ -1,7 +1,5 @@
 package com.github.amitkma.primeplayer.features.bookmark.domain.usecase
 
-import android.arch.lifecycle.LiveData
-import android.arch.persistence.room.ColumnInfo
 import com.github.amitkma.primeplayer.features.bookmark.domain.model.Bookmark
 import com.github.amitkma.primeplayer.framework.db.PrimePlayerDatabase
 import com.github.amitkma.primeplayer.framework.executor.Executors
@@ -15,12 +13,13 @@ import javax.inject.Singleton
 @Singleton
 class AddBookmarkUseCase
 @Inject constructor(private val database: PrimePlayerDatabase,
-        private val executors: Executors) : UseCase<UseCase.None, AddBookmarkUseCase.BookmarkParam>() {
+        private val executors: Executors) :
+        UseCase<UseCase.None, AddBookmarkUseCase.BookmarkParam>() {
 
     override fun build(params: AddBookmarkUseCase.BookmarkParam?) {
         executors.disk().execute({
             if (params != null) {
-                val rowId = database.bookmarkDao().insertBookmark(Bookmark(
+                database.bookmarkDao().insertBookmark(Bookmark(
                         params.path,
                         params.name,
                         params.thumbnail,

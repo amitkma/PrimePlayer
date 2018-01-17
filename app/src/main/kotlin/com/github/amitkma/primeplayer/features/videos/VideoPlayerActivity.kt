@@ -1,7 +1,5 @@
 package com.github.amitkma.primeplayer.features.videos
 
-import android.arch.lifecycle.LiveData
-import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
@@ -11,7 +9,6 @@ import android.view.MenuItem
 import android.widget.Toast
 import com.github.amitkma.primeplayer.R
 import com.github.amitkma.primeplayer.features.bookmark.AddBookmarkDialog
-import com.github.amitkma.primeplayer.features.bookmark.domain.model.Bookmark
 import com.github.amitkma.primeplayer.features.bookmark.domain.usecase.AddBookmarkUseCase
 import com.github.amitkma.primeplayer.framework.interactor.UseCase
 import com.google.android.exoplayer2.*
@@ -23,7 +20,6 @@ import com.google.android.exoplayer2.trackselection.TrackSelectionArray
 import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.upstream.DataSpec
 import com.google.android.exoplayer2.upstream.FileDataSource
-import com.google.android.exoplayer2.util.Util
 import dagger.android.AndroidInjection
 import kotlinx.android.synthetic.main.activity_video_player.*
 import kotlinx.android.synthetic.main.toolbar.*
@@ -59,33 +55,10 @@ class VideoPlayerActivity : AppCompatActivity(), AddBookmarkDialog.AddBookmarkDi
         shouldAutoPlay = true
         setContentView(R.layout.activity_video_player)
         setSupportActionBar(toolbar)
-        if(intent != null){
+        if (intent != null) {
             initializePlayer()
         }
 
-    }
-
-    override fun onNewIntent(intent: Intent?) {
-    }
-
-    override fun onStart() {
-        super.onStart()
-        if (Util.SDK_INT > 23) {
-        }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        if (Util.SDK_INT <= 23 || exoPlayer == null) {
-        }
-    }
-
-    override fun onPause() {
-        super.onPause()
-    }
-
-    override fun onStop() {
-        super.onStop()
     }
 
     override fun onDestroy() {
@@ -205,7 +178,8 @@ class VideoPlayerActivity : AppCompatActivity(), AddBookmarkDialog.AddBookmarkDi
     }
 
     override fun onDialogAddClick(bookmarkName: String) {
-        val bookmark = AddBookmarkUseCase.BookmarkParam(path, videoName, thumbnail, resumeWindow, resumePosition)
+        val bookmark = AddBookmarkUseCase.BookmarkParam(path, videoName, thumbnail, resumeWindow,
+                resumePosition)
         exoPlayer!!.playWhenReady = true
         addBookmarkUsecase.execute(bookmark, UseCaseCallbackWrapper(bookmarkName))
 
@@ -215,6 +189,7 @@ class VideoPlayerActivity : AppCompatActivity(), AddBookmarkDialog.AddBookmarkDi
         exoPlayer!!.playWhenReady = true
         Toast.makeText(this, "Bookmark cancelled", Toast.LENGTH_SHORT).show()
     }
+
     inner class UseCaseCallbackWrapper(val name: String) : UseCase.UseCaseCallback<UseCase.None> {
         override fun onSuccess(response: UseCase.None) {
             Toast.makeText(this@VideoPlayerActivity, "$name added", Toast.LENGTH_SHORT).show()

@@ -24,8 +24,9 @@
         <activity
             android:name=".features.videos.VideoPlayerActivity"
             android:label="Prime Video" />
-        <activity android:name=".features.bookmark.BookmarkActivity"
-            android:label="@string/bookmarks"></activity>
+        <activity
+            android:name=".features.bookmark.BookmarkActivity"
+            android:label="@string/bookmarks" />
     </application>
 
 </manifest>

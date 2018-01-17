@@ -1,10 +1,8 @@
 package com.github.amitkma.primeplayer.framework.interactor
 
-import com.github.amitkma.primeplayer.framework.executor.ThreadExecutors
-import java.util.concurrent.Executor
-import javax.inject.Inject
-
 /**
+ * Created by falcon on 15/1/18.
+ *
  * Use cases are the entry points to the domain layer.
  *
  * @param Type the response type
@@ -14,7 +12,7 @@ abstract class UseCase<Type, in Params> where Type : Any {
 
     abstract fun build(params: Params?)
 
-    fun clear(){
+    fun clear() {
         useCaseCallback = null
     }
 
@@ -25,7 +23,7 @@ abstract class UseCase<Type, in Params> where Type : Any {
         build(params)
     }
 
-    fun getUseCaseCallback(): UseCaseCallback<Type>?{
+    fun getUseCaseCallback(): UseCaseCallback<Type>? {
         return useCaseCallback
     }
 

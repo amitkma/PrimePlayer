@@ -11,7 +11,10 @@ import dagger.Module
 import dagger.Provides
 import javax.inject.Singleton
 
-@Module(includes = arrayOf(ViewModelModule::class))
+/**
+ * Created by falcon on 15/1/18.
+ */
+@Module(includes = [(ViewModelModule::class)])
 open class ApplicationModule {
 
     @Singleton
@@ -29,6 +32,8 @@ open class ApplicationModule {
 
     @Singleton
     @Provides
-    fun provideDb(application: Application, @DatabaseName dbName: String): PrimePlayerDatabase = Room.databaseBuilder(application,
+    fun provideDb(
+            application: Application, @DatabaseName dbName: String): PrimePlayerDatabase = Room.databaseBuilder(
+            application,
             PrimePlayerDatabase::class.java, dbName).build()
 }

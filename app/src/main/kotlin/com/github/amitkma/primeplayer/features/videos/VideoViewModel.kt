@@ -11,6 +11,8 @@ import com.github.amitkma.primeplayer.framework.vo.ResourceState
 import javax.inject.Inject
 
 /**
+ * Created by falcon on 15/1/18.
+ *
  * ViewModel responsible for getting data from a [VideoUseCase]
  * and handling events from [VideosActivity].
  */

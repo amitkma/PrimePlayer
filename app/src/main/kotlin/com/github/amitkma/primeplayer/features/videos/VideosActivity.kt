@@ -27,7 +27,9 @@ import kotlinx.android.synthetic.main.toolbar.*
 import timber.log.Timber
 import javax.inject.Inject
 
-
+/**
+ * Created by falcon on 15/1/18.
+ */
 class VideosActivity : AppCompatActivity() {
 
     /**
@@ -126,12 +128,8 @@ class VideosActivity : AppCompatActivity() {
     }
 
     private fun setupScreenForError(message: String?) {
-        Timber.d("ERROR SCREEN")
+        Timber.e(message)
         // TODO: Show error screen.
-    }
-
-    private fun setupViewListeners() {
-        // TODO: Set view click listener.
     }
 
     /*private val emptyListener = object : EmptyListener {

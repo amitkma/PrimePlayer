@@ -11,6 +11,8 @@ import dagger.Module
 import dagger.multibindings.IntoMap
 
 /**
+ * Created by falcon on 15/1/18.
+ *
  * Module to bind ViewModels into a Map using [ViewModelKey]
  */
 @Module abstract class ViewModelModule {

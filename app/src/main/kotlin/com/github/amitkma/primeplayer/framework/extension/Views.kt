@@ -8,6 +8,10 @@ import android.widget.ImageView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 
+/**
+ * Created by falcon on 15/1/18.
+ */
+
 // Function to cancel view transition.
 fun View.cancelTransition() {
     transitionName = null

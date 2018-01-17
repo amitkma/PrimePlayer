@@ -20,7 +20,7 @@
         android:layout_height="36dp"
         android:textSize="14dp"
         android:id="@+id/bookmarkTitle"
-        android:background="#77000000"
+        android:background="@drawable/scrim"
         tools:text="Bookmark#1"
         android:layout_gravity="bottom"
         android:gravity="center_vertical"

@@ -1,5 +1,6 @@
 package com.github.amitkma.primeplayer.features.bookmark
 
+import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.app.Dialog
 import android.app.DialogFragment
@@ -7,7 +8,6 @@ import android.content.Context
 import android.os.Bundle
 import android.view.View
 import com.github.amitkma.primeplayer.R
-import kotlinx.android.synthetic.main.dialog_add_bookmark.*
 import kotlinx.android.synthetic.main.dialog_add_bookmark.view.*
 
 /**
@@ -34,7 +34,7 @@ class AddBookmarkDialog : DialogFragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if(arguments !=null){
+        if (arguments != null) {
             defaultBookmarkName = arguments.getString(
                     DEFAULT_BOOKMARK_NAME_KEY)
         }
@@ -51,6 +51,7 @@ class AddBookmarkDialog : DialogFragment() {
     }
 
 
+    @SuppressLint("InflateParams")
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val builder: AlertDialog.Builder = AlertDialog.Builder(activity)
         val inflater = activity.layoutInflater

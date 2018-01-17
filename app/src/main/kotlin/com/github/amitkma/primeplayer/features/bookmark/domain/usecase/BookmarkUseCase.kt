@@ -1,9 +1,6 @@
 package com.github.amitkma.primeplayer.features.bookmark.domain.usecase
 
-import android.arch.lifecycle.LiveData
 import com.github.amitkma.primeplayer.features.bookmark.domain.model.Bookmark
-import com.github.amitkma.primeplayer.features.videos.data.VideosRepository
-import com.github.amitkma.primeplayer.features.videos.domain.model.Video
 import com.github.amitkma.primeplayer.framework.db.PrimePlayerDatabase
 import com.github.amitkma.primeplayer.framework.executor.Executors
 import com.github.amitkma.primeplayer.framework.interactor.UseCase

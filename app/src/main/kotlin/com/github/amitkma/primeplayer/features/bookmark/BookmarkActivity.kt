@@ -16,6 +16,9 @@ import kotlinx.android.synthetic.main.activity_bookmark.*
 import kotlinx.android.synthetic.main.toolbar.*
 import javax.inject.Inject
 
+/**
+ * Created by falcon on 17/1/18.
+ */
 class BookmarkActivity : AppCompatActivity() {
 
     /**
@@ -43,12 +46,12 @@ class BookmarkActivity : AppCompatActivity() {
 
         bookmarkViewModel = ViewModelProviders.of(this, viewModelFactory)
                 .get(BookmarkViewModel::class.java)
-        bookmarkViewModel.getBookmarks().observe(this, Observer{
-            if(it != null && it.isNotEmpty()){
-                noBookmarkTextView.visibility= View.GONE
+        bookmarkViewModel.getBookmarks().observe(this, Observer {
+            if (it != null && it.isNotEmpty()) {
+                noBookmarkTextView.visibility = View.GONE
                 bookmarkAdapter.list = it
-            }else{
-                noBookmarkTextView.visibility= View.VISIBLE
+            } else {
+                noBookmarkTextView.visibility = View.VISIBLE
             }
         })
     }

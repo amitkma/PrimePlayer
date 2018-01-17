@@ -8,11 +8,13 @@ import android.widget.ImageView
 import android.widget.TextView
 import com.github.amitkma.primeplayer.R
 import com.github.amitkma.primeplayer.features.bookmark.domain.model.Bookmark
-import com.github.amitkma.primeplayer.features.videos.domain.model.Video
 import com.github.amitkma.primeplayer.framework.extension.loadFromUrl
 import javax.inject.Inject
 import kotlin.properties.Delegates
 
+/**
+ * Created by falcon on 17/1/18.
+ */
 class BookmarkAdapter
 @Inject constructor() :
         RecyclerView.Adapter<BookmarkAdapter.ViewHolder>() {
@@ -34,7 +36,7 @@ class BookmarkAdapter
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val itemView = LayoutInflater.from(parent.context)
                 .inflate(R.layout.item_row_bookmark, parent, false)
-        var viewHolder = ViewHolder(itemView)
+        val viewHolder = ViewHolder(itemView)
         itemView.setOnClickListener { clickListener(list[viewHolder.adapterPosition]) }
         return viewHolder
     }
