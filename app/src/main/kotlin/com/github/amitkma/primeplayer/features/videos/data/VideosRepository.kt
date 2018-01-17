@@ -25,9 +25,6 @@ class VideosRepository
     fun videos(): List<Video> {
         val position = 0
         val uri: Uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-        val cursor: Cursor
-        val columnIndexData: Int
-        val columnIndexFolderName: Int
         val columnId: Int
         val thumbnail: Int
 
@@ -35,28 +32,25 @@ class VideosRepository
 
         val projection = arrayOf(MediaStore.MediaColumns.DATA,
                 MediaStore.Video.Media.BUCKET_DISPLAY_NAME, MediaStore.Video.Media._ID,
-                MediaStore.Video.Thumbnails.DATA)
+                MediaStore.Video.Thumbnails.DATA,
+                MediaStore.Video.Media.DISPLAY_NAME,
+                MediaStore.Video.Media.TITLE)
 
         // Sort on the basis of date taken ie from most recent to least recent.
         val orderBy = MediaStore.Video.Media.DATE_MODIFIED
-        cursor = context.contentResolver.query(uri, projection, null, null,
+        val cursor = context.contentResolver.query(uri, projection, null, null,
                 orderBy + " DESC")
 
-        columnIndexData = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA)
-        columnIndexFolderName = cursor.getColumnIndexOrThrow(
+        val columnIndexData = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA)
+        val columnIndexFolderName = cursor.getColumnIndexOrThrow(
                 MediaStore.Video.Media.BUCKET_DISPLAY_NAME)
-        columnId = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
-        thumbnail = cursor.getColumnIndexOrThrow(MediaStore.Video.Thumbnails.DATA)
-
+        val columnIndexId = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
+        val columnIndexThumbnail = cursor.getColumnIndexOrThrow(MediaStore.Video.Thumbnails.DATA)
+        val columnIndexDisplayName = cursor.getColumnIndex(MediaStore.Video.Media.DISPLAY_NAME)
+        val columnIndexTitle = cursor.getColumnIndex(MediaStore.Video.Media.TITLE)
         while (cursor.moveToNext()) {
-            absolutePathOfVideo = cursor.getString(columnIndexData)
-            Log.e("Column", absolutePathOfVideo)
-            Log.e("Folder", cursor.getString(columnIndexFolderName))
-            Log.e("column_id", cursor.getString(columnId))
-            Log.e("thum", cursor.getString(thumbnail))
-
-            val video = Video(
-                    absolutePathOfVideo, cursor.getString(thumbnail))
+            val video = Video(cursor.getString(columnIndexTitle),
+                    cursor.getString(columnIndexData), cursor.getString(columnIndexThumbnail))
             videos.add(video)
         }
         cursor.close() // Close and invalidate the cursor.

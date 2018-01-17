@@ -27,7 +27,8 @@ android {
         abortOnError false
         ignoreWarnings true
         disable 'InvalidPackage'            //Some libraries have issues with this.
-        disable 'OldTargetApi'              //Lint gives this warning but SDK 20 would be Android L Beta.
+        disable 'OldTargetApi'
+        //Lint gives this warning but SDK 20 would be Android L Beta.
         disable 'IconDensities'             //For testing purpose. This is safe to remove.
         disable 'IconMissingDensityFolder'  //For testing purpose. This is safe to remove.
     }
@@ -67,6 +68,8 @@ dependencies {
 
     implementation mainApplication.dagger.runtime
     implementation mainApplication.dagger.androidRuntime
+    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
+    implementation 'com.android.support:support-v4:26.1.0'
     kapt mainApplication.dagger.compiler
     kapt mainApplication.dagger.androidCompiler
 
@@ -92,7 +95,7 @@ dependencies {
     testImplementation unitTesting.mockito
     testImplementation unitTesting.kluent
 
-    testImplementation (archTesting.core, {
+    testImplementation(archTesting.core, {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
 
@@ -105,15 +108,15 @@ dependencies {
     androidTestImplementation acceptanceTesting.testRunner
     androidTestImplementation acceptanceTesting.testRules
     androidTestImplementation acceptanceTesting.annotations
-    androidTestImplementation (acceptanceTesting.espressoCore, {
+    androidTestImplementation(acceptanceTesting.espressoCore, {
         exclude group: 'com.android.support', module: 'support-annotations'
         exclude group: 'com.google.code.findbugs', module: 'jsr305'
     })
-    androidTestImplementation (acceptanceTesting.espressoIntents, {
+    androidTestImplementation(acceptanceTesting.espressoIntents, {
         exclude group: 'com.android.support', module: 'support-annotations'
         exclude group: 'com.google.code.findbugs', module: 'jsr305'
     })
-    androidTestImplementation (acceptanceTesting.espressoContrib, {
+    androidTestImplementation(acceptanceTesting.espressoContrib, {
         exclude group: 'com.android.support', module: 'support-annotations'
         exclude group: 'com.google.code.findbugs', module: 'jsr305'
     })

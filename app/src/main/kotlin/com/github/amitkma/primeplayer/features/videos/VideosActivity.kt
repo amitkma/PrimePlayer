@@ -13,8 +13,11 @@ import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.StaggeredGridLayoutManager
 import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import com.github.amitkma.primeplayer.R
+import com.github.amitkma.primeplayer.features.bookmark.BookmarkActivity
 import com.github.amitkma.primeplayer.features.videos.domain.model.Video
 import com.github.amitkma.primeplayer.framework.extension.verifyPermissions
 import com.github.amitkma.primeplayer.framework.vo.Resource
@@ -88,7 +91,9 @@ class VideosActivity : AppCompatActivity() {
         videosAdapter.clickListener = { video ->
             run {
                 val intent = Intent(this, VideoPlayerActivity::class.java)
-                intent.putExtra("video_uri", video.path)
+                intent.putExtra("video_path", video.path)
+                intent.putExtra("video_name", video.name)
+                intent.putExtra("video_thumb", video.thumbnail)
                 startActivity(intent)
             }
         }
@@ -194,6 +199,25 @@ class VideosActivity : AppCompatActivity() {
             }
         } else {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        val menuInflater = menuInflater
+        menuInflater.inflate(R.menu.menu_videos, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        return when (item!!.itemId) {
+            R.id.item_bookmark_menu -> {
+                val intent = Intent(this, BookmarkActivity::class.java)
+                startActivity(intent)
+                true
+            }
+            else -> {
+                super.onOptionsItemSelected(item)
+            }
         }
     }
 }

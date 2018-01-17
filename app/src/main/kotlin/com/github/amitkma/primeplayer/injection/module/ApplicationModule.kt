@@ -29,6 +29,6 @@ open class ApplicationModule {
 
     @Singleton
     @Provides
-    fun provideDb(application: Application, @DatabaseName dbName: String) = Room.databaseBuilder(application,
+    fun provideDb(application: Application, @DatabaseName dbName: String): PrimePlayerDatabase = Room.databaseBuilder(application,
             PrimePlayerDatabase::class.java, dbName).build()
 }

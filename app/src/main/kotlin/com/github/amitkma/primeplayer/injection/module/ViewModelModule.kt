@@ -2,6 +2,7 @@ package com.github.amitkma.primeplayer.injection.module
 
 import android.arch.lifecycle.ViewModel
 import android.arch.lifecycle.ViewModelProvider
+import com.github.amitkma.primeplayer.features.bookmark.BookmarkViewModel
 import com.github.amitkma.primeplayer.features.videos.VideoViewModel
 import com.github.amitkma.primeplayer.framework.viewmodel.PrimePlayerViewModelFactory
 import com.github.amitkma.primeplayer.injection.ViewModelKey
@@ -18,6 +19,11 @@ import dagger.multibindings.IntoMap
     @IntoMap
     @ViewModelKey(VideoViewModel::class)
     abstract fun bindVideoViewModel(videoViewModel: VideoViewModel): ViewModel
+
+    @Binds
+    @IntoMap
+    @ViewModelKey(BookmarkViewModel::class)
+    abstract fun bindBookmarkViewModel(bookmarkViewModel: BookmarkViewModel): ViewModel
 
     @Binds
     abstract fun bindViewModelFactory(
