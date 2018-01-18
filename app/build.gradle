@@ -87,6 +87,8 @@ dependencies {
 
     implementation development.timber
 
+    implementation mainApplication.firebase.crash
+
     // Unit & Integration Test Dependencies
     testImplementation unitTesting.junit
     testImplementation unitTesting.kotlin
@@ -131,3 +133,5 @@ dependencies {
 kapt {
     generateStubs = true
 }
+
+apply plugin: 'com.google.gms.google-services'

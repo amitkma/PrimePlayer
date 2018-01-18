@@ -22,6 +22,7 @@ ext {
     arch_version = '1.0.0'
     constraint_layout = '1.0.2'
     exo_version = '2.6.1'
+    firebase_version = '11.8.0'
 
     //Unit Testing
     robolectric_version = '3.3.2'
@@ -79,6 +80,10 @@ ext {
             ],
 
             glide    : "com.github.bumptech.glide:glide:$glide_version",
+
+            firebase:[
+                    crash: "com.google.firebase:firebase-crash:$firebase_version"
+            ]
     ]
 
 
