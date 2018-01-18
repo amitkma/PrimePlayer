@@ -1,10 +1,13 @@
 package com.github.amitkma.primeplayer.features.bookmark
 
 import android.annotation.SuppressLint
+import android.annotation.TargetApi
+import android.app.Activity
 import android.app.AlertDialog
 import android.app.Dialog
 import android.app.DialogFragment
 import android.content.Context
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import com.github.amitkma.primeplayer.R
@@ -47,6 +50,18 @@ class AddBookmarkDialog : DialogFragment() {
         } else {
             throw RuntimeException(
                     context.toString() + " must implement AddBookmarkDialog")
+        }
+    }
+
+    override fun onAttach(activity: Activity?) {
+        super.onAttach(activity)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            if (activity is AddBookmarkDialogListener) {
+                mListener = activity
+            } else {
+                throw RuntimeException(
+                        activity.toString() + " must implement AddBookmarkDialog")
+            }
         }
     }
 
