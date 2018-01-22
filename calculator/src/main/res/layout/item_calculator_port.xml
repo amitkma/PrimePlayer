@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   Copyright (C) 2014 The Android Open Source Project
 
   Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,17 +14,19 @@
   limitations under the License.
   -->
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.github.amitkma.calculator.CalculatorLinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:elevation="10dp"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    app:bounded_height="384dp"
+    app:bounded_width="216dp">
 
     <include
         layout="@layout/display"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content" />
 
     <com.github.amitkma.calculator.CalculatorPadViewPager
         android:id="@+id/pad_pager"
@@ -39,6 +40,7 @@
             android:layout_height="match_parent">
 
             <include layout="@layout/pad_numeric" />
+
             <include layout="@layout/pad_operator_one_col" />
 
         </LinearLayout>
@@ -47,4 +49,4 @@
 
     </com.github.amitkma.calculator.CalculatorPadViewPager>
 
-</LinearLayout>
+</com.github.amitkma.calculator.CalculatorLinearLayout>

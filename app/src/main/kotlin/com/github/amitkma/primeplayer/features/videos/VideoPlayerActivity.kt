@@ -1,8 +1,5 @@
 package com.github.amitkma.primeplayer.features.videos
 
-import android.app.Fragment
-import android.app.FragmentTransaction
-import android.app.Service
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -12,7 +9,6 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.IBinder
 import android.support.v7.app.AppCompatActivity
-import android.view.*
 import android.widget.SeekBar
 import android.widget.Toast
 import com.github.amitkma.calculator.Calculator
@@ -33,7 +29,6 @@ import com.google.android.exoplayer2.upstream.FileDataSource
 import dagger.android.AndroidInjection
 import kotlinx.android.synthetic.main.activity_video_player.*
 import kotlinx.android.synthetic.main.item_playback_control.*
-import kotlinx.android.synthetic.main.toolbar.*
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
@@ -82,12 +77,11 @@ class VideoPlayerActivity : AppCompatActivity(), AddBookmarkDialog.AddBookmarkDi
         releasePlayer()
     }
 
-
     private fun initializeView() {
-        playerView.setOnTouchListener({ v, e ->
+        playerView.setOnTouchListener({ _, e ->
             if(mBound){
                 unbindService(connection)
-                mBound = false;
+                mBound = false
             }else{
                 playerView.onTouchEvent(e)
             }
@@ -103,9 +97,11 @@ class VideoPlayerActivity : AppCompatActivity(), AddBookmarkDialog.AddBookmarkDi
         }
 
         calculatorImageView.setOnClickListener {
-            val intent = Intent(this, Calculator::class.java)
-            bindService(intent, connection, Context.BIND_AUTO_CREATE)
-            mBound = true;
+            if(!mBound) {
+                val intent = Intent(this, Calculator::class.java)
+                bindService(intent, connection, Context.BIND_AUTO_CREATE)
+                mBound = true
+            }
         }
 
     }

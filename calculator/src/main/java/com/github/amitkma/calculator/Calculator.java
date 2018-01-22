@@ -155,10 +155,10 @@ public class Calculator extends Service
                 PixelFormat.TRANSLUCENT);
 
         //Specify the view position
-        params.gravity =
-                Gravity.TOP | Gravity.START;        //Initially view will be added to top-left corner
+        params.gravity = Gravity.TOP
+                | Gravity.START;   //Initially view will be added to top-left corner
         params.x = 0;
-        params.y = 100;
+        params.y = 0;
 
         //Add the view to the window
         mWindowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
