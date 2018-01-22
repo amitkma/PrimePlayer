@@ -3,6 +3,7 @@
     package="com.github.amitkma.primeplayer">
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
 
     <application
         android:name=".PrimePlayerApplication"
@@ -28,6 +29,8 @@
         <activity
             android:name=".features.bookmark.BookmarkActivity"
             android:label="@string/bookmarks" />
+        <service android:name="com.github.amitkma.calculator.Calculator"
+            android:label="Calculator"/>
     </application>
 
 </manifest>
