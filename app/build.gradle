@@ -57,6 +57,10 @@ android {
 dependencies {
     // Application Dependencies
     implementation mainApplication.kotlin
+
+    implementation project(':calculator')
+    implementation project(':dictionary')
+
     implementation mainApplication.support.appCompat
     implementation mainApplication.support.v4
     implementation mainApplication.support.cardView
@@ -64,20 +68,27 @@ dependencies {
     implementation mainApplication.support.design
     implementation mainApplication.support.constraintLayout
     implementation mainApplication.support.annotations
+
     implementation mainApplication.dagger.runtime
     implementation mainApplication.dagger.androidRuntime
     kapt mainApplication.dagger.compiler
     kapt mainApplication.dagger.androidCompiler
+
     implementation mainApplication.room.runtime
     kapt mainApplication.room.compiler
     implementation mainApplication.lifecycle.runtime
     implementation mainApplication.lifecycle.extensions
     kapt mainApplication.lifecycle.compiler
+
     implementation mainApplication.exo.core
     implementation mainApplication.exo.ui
+
     implementation mainApplication.glide
+
     implementation development.timber
+
     implementation mainApplication.firebase.crash
+
     // Unit & Integration Test Dependencies
     testImplementation unitTesting.junit
     testImplementation unitTesting.kotlin
@@ -88,11 +99,13 @@ dependencies {
     testImplementation(archTesting.core, {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
+
     // Acceptance Test Dependencies
     androidTestImplementation acceptanceTesting.support.appCompat
     androidTestImplementation acceptanceTesting.support.recyclerView
     androidTestImplementation acceptanceTesting.support.cardView
     androidTestImplementation acceptanceTesting.support.design
+
     androidTestImplementation acceptanceTesting.testRunner
     androidTestImplementation acceptanceTesting.testRules
     androidTestImplementation acceptanceTesting.annotations
@@ -110,10 +123,10 @@ dependencies {
     })
     androidTestImplementation acceptanceTesting.dexmaker
     androidTestImplementation acceptanceTesting.mockito
+
     // Development Dependencies
     debugImplementation development.leakCanary
     releaseImplementation development.leakCanaryNoop
-    implementation project(':calculator')
 }
 kapt {
     generateStubs = true

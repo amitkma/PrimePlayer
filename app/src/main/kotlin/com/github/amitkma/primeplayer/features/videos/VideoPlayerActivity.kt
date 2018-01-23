@@ -12,6 +12,7 @@ import android.support.v7.app.AppCompatActivity
 import android.widget.SeekBar
 import android.widget.Toast
 import com.github.amitkma.calculator.Calculator
+import com.github.amitkma.dictionary.Dictionary
 import com.github.amitkma.primeplayer.R
 import com.github.amitkma.primeplayer.features.bookmark.AddBookmarkDialog
 import com.github.amitkma.primeplayer.features.bookmark.domain.usecase.AddBookmarkUseCase
@@ -68,21 +69,24 @@ class VideoPlayerActivity : AppCompatActivity(), AddBookmarkDialog.AddBookmarkDi
         }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
+    override fun onStop() {
+        super.onStop()
         if (mBound) {
             unbindService(connection)
             mBound = false
         }
+    }
+    override fun onDestroy() {
+        super.onDestroy()
         releasePlayer()
     }
 
     private fun initializeView() {
         playerView.setOnTouchListener({ _, e ->
-            if(mBound){
+            if (mBound) {
                 unbindService(connection)
                 mBound = false
-            }else{
+            } else {
                 playerView.onTouchEvent(e)
             }
             true
@@ -97,10 +101,24 @@ class VideoPlayerActivity : AppCompatActivity(), AddBookmarkDialog.AddBookmarkDi
         }
 
         calculatorImageView.setOnClickListener {
-            if(!mBound) {
+            if (!mBound) {
                 val intent = Intent(this, Calculator::class.java)
                 bindService(intent, connection, Context.BIND_AUTO_CREATE)
                 mBound = true
+            } else {
+                unbindService(connection)
+                mBound = false
+            }
+        }
+
+        dictionaryImageView.setOnClickListener {
+            if (!mBound) {
+                val intent = Intent(this, Dictionary::class.java)
+                bindService(intent, connection, Context.BIND_AUTO_CREATE)
+                mBound = true
+            } else {
+                unbindService(connection)
+                mBound = false
             }
         }
 

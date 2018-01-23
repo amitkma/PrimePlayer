@@ -4,6 +4,7 @@
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
 
     <application
         android:name=".PrimePlayerApplication"
@@ -31,6 +32,7 @@
             android:label="@string/bookmarks" />
         <service android:name="com.github.amitkma.calculator.Calculator"
             android:label="Calculator"/>
+        <service android:name="com.github.amitkma.dictionary.Dictionary"/>
     </application>
 
 </manifest>

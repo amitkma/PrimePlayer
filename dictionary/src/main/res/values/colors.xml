@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="onfind">#66bb6a</color>
+    <color name="onerror">#ff8a65</color>
+    <color name="relative_color">#ffd54f</color>
+
+
+    <color name="errorcode">#ff8a65</color>
+    <color name="onfindwrd">#66bb6a</color>
+    <color name="reltive_color">#ffd54f</color>
+
+</resources>
