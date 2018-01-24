@@ -1,5 +1,8 @@
 package com.github.amitkma.primeplayer.framework.extension
 
+import android.content.res.Resources
+import android.util.DisplayMetrics
+
 /**
  * Created by falcon on 22/1/18.
  */
@@ -14,4 +17,14 @@ fun Int.convertToString(): String {
     } else {
         return "%02d:%02d".format(minutes, seconds)
     }
+}
+
+fun Float.convertToDp(): Int {
+    val displayMetrics: DisplayMetrics = Resources.getSystem().displayMetrics
+    return (this / (displayMetrics.densityDpi / DisplayMetrics.DENSITY_DEFAULT)).toInt()
+}
+
+fun Int.convertToPx(): Float {
+    val displayMetrics: DisplayMetrics = Resources.getSystem().displayMetrics
+    return this * (displayMetrics.densityDpi.toFloat() / DisplayMetrics.DENSITY_DEFAULT)
 }

@@ -1,7 +1,7 @@
 package com.github.amitkma.primeplayer.injection.module
 
-import com.github.amitkma.primeplayer.features.bookmark.BookmarkActivity
-import com.github.amitkma.primeplayer.features.videos.VideoPlayerActivity
+import com.github.amitkma.primeplayer.features.bookmarks.BookmarkActivity
+import com.github.amitkma.primeplayer.features.videoplayer.VideoPlayerActivity
 import com.github.amitkma.primeplayer.features.videos.VideosActivity
 import com.github.amitkma.primeplayer.injection.scope.PerActivity
 import dagger.Module

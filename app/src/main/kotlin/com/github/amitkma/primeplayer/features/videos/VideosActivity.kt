@@ -17,7 +17,8 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import com.github.amitkma.primeplayer.R
-import com.github.amitkma.primeplayer.features.bookmark.BookmarkActivity
+import com.github.amitkma.primeplayer.features.bookmarks.BookmarkActivity
+import com.github.amitkma.primeplayer.features.videoplayer.VideoPlayerActivity
 import com.github.amitkma.primeplayer.features.videos.domain.model.Video
 import com.github.amitkma.primeplayer.framework.extension.verifyPermissions
 import com.github.amitkma.primeplayer.framework.vo.Resource

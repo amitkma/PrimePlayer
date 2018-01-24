@@ -24,11 +24,11 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".features.videos.VideoPlayerActivity"
+            android:name=".features.videoplayer.VideoPlayerActivity"
             android:label="Prime Video"
             android:screenOrientation="landscape"/>
         <activity
-            android:name=".features.bookmark.BookmarkActivity"
+            android:name=".features.bookmarks.BookmarkActivity"
             android:label="@string/bookmarks" />
         <service android:name="com.github.amitkma.calculator.Calculator"
             android:label="Calculator"/>

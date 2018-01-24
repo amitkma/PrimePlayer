@@ -1,1 +1,1 @@
-include ':app', ':calculator', ':dictionary'
+include ':app', ':calculator', ':dictionary', ':notepad'

@@ -2,9 +2,8 @@ package com.github.amitkma.primeplayer.framework.db
 
 import android.arch.persistence.room.Database
 import android.arch.persistence.room.RoomDatabase
-import com.github.amitkma.primeplayer.features.bookmark.data.BookmarkDao
-import com.github.amitkma.primeplayer.features.bookmark.domain.model.Bookmark
-import com.github.amitkma.primeplayer.features.videos.domain.model.Video
+import com.github.amitkma.primeplayer.data.source.BookmarkDao
+import com.github.amitkma.primeplayer.features.bookmarks.domain.model.Bookmark
 
 /**
  * Created by falcon on 15/1/18.
