@@ -148,17 +148,15 @@ public class Calculator extends Service
 
         //Add the view to the window.
         final WindowManager.LayoutParams params = new WindowManager.LayoutParams(
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_PHONE,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+                320,450,
+                WindowManager.LayoutParams.TYPE_PHONE, WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL| WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
                 PixelFormat.TRANSLUCENT);
 
         //Specify the view position
         params.gravity = Gravity.TOP
-                | Gravity.START;   //Initially view will be added to top-left corner
-        params.x = 0;
-        params.y = 0;
+                | Gravity.RIGHT;   //Initially view will be added to top-left corner
+        params.x = 105;
+        params.y = 130;
 
         //Add the view to the window
         mWindowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
