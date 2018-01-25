@@ -5,8 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_marginTop="30dp"
-    android:background="#FFFFFF"
-    android:orientation="vertical">
+    android:background="#FFFFFF">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -52,9 +51,8 @@
             android:paddingRight="16dp"
             android:paddingTop="16dp"
             android:textAlignment="textStart"
-            android:textSize="16sp"
             android:textColor="#000"
-            tools:text="Hi" />
+            android:textSize="16sp" />
 
     </ScrollView>
 
@@ -67,7 +65,29 @@
         android:layout_gravity="bottom|right"
         android:layout_marginBottom="16dp"
         android:layout_marginEnd="16dp"
+        app:backgroundTint="#00bf9a"
         android:src="@drawable/fab" />
+
+    <ProgressBar
+        android:id="@+id/loadingBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone"></ProgressBar>
+
+    <FrameLayout
+        android:id="@+id/noConnectionView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone">
+        <Button
+            android:id="@+id/refreshButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="Refresh"
+            android:textSize="16sp" />
+    </FrameLayout>
 
 
 </android.support.design.widget.CoordinatorLayout>

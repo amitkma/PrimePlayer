@@ -1,11 +1,14 @@
 package com.github.amitkma.dictionary;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
@@ -70,10 +73,9 @@ public class Dictionary extends Service {
         mImageButton = mFloatingView.findViewById(R.id.button);
         mScrollView = mFloatingView.findViewById(R.id.scrollView3);
 
-
         //Add the view to the window.
         final WindowManager.LayoutParams params = new WindowManager.LayoutParams(
-                350, 500,
+                320, 450,
                 WindowManager.LayoutParams.TYPE_PHONE,
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
                         | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
@@ -82,29 +84,52 @@ public class Dictionary extends Service {
         //Specify the view position
         params.gravity = Gravity.TOP
                 | Gravity.RIGHT;        //Initially view will be added to top-left corner
-        params.x = 125;
-        params.y = 100 + 30;
+        params.x = 105;
+        params.y = 130;
 
         //Add the view to the window
         mWindowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
+        mFloatingView.findViewById(R.id.refreshButton).setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        makeRequest();
+                    }
+                });
+	mFloatingView.findViewById(R.id.floatingActionButton).setVisibility(View.GONE);
         mWindowManager.addView(mFloatingView, params);
 
         mImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mEditText.getText().toString().matches("")) {
-                    Toast.makeText(mFloatingView.getContext(), "no word to search",
-                            Toast.LENGTH_SHORT).show();
-                } else {
-                    new CallbackTask().execute(inflections());
-                    mTextView.setText("Searching");
-                    mTextView.setBackgroundColor(Color.WHITE);
-                    mScrollView.setBackgroundColor(Color.WHITE);
-                }
+                makeRequest();
             }
         });
     }
 
+    private void makeRequest() {
+	mFloatingView.findViewById(R.id.floatingActionButton).setVisibility(View.GONE);
+        mFloatingView.findViewById(R.id.noConnectionView).setVisibility(View.GONE);
+        mFloatingView.findViewById(R.id.loadingBar).setVisibility(View.VISIBLE);
+        ConnectivityManager connMgr = (ConnectivityManager)
+                getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+        if (networkInfo != null && networkInfo.isConnected()) {
+            if (mEditText.getText().toString().matches("")) {
+                Toast.makeText(mFloatingView.getContext(), "no word to search",
+                        Toast.LENGTH_SHORT).show();
+                mFloatingView.findViewById(R.id.loadingBar).setVisibility(View.GONE);
+            } else {
+                new CallbackTask().execute(inflections());
+                mTextView.setText("Searching");
+                mTextView.setBackgroundColor(Color.WHITE);
+                mScrollView.setBackgroundColor(Color.WHITE);
+            }
+        } else {
+            mFloatingView.findViewById(R.id.loadingBar).setVisibility(View.GONE);
+            mFloatingView.findViewById(R.id.noConnectionView).setVisibility(View.VISIBLE);
+        }
+    }
 
     public String inflections() {
         final String language = "en";
@@ -115,7 +140,6 @@ public class Dictionary extends Service {
         return "https://od-api.oxforddictionaries.com:443/api/v1/entries/" + language + "/"
                 + word_id;
     }
-
 
     //in android calling network requests on the main thread forbidden by default
     //create class to do async job
@@ -146,7 +170,6 @@ public class Dictionary extends Service {
                     stringBuilder.append(line + "\n");
                 }
                 urlConnection.disconnect();
-                /////json parse
 
                 String def = "eror";
                 ArrayList<DictionaryWord> dictinoryData = new ArrayList<>();
@@ -189,27 +212,20 @@ public class Dictionary extends Service {
                             for (int j = 0; j < examp.length(); j++) {
                                 JSONObject text = examp.getJSONObject(j);
                                 expary.add(text.getString("text"));
-
                             }
                             dictinoryData.add(
                                     new DictionaryWord(id, Deriv, mean, expary, audio_url));
                         } catch (Exception e1) {
-                            Log.d(
-                                    "Main_activity", "no examples");
-
+                            Log.d("Main_activity", "no examples");
                             dictinoryData.add(new DictionaryWord(id, Deriv, mean, audio_url));
                         }
-
                     }
-
-
                 } catch (JSONException e) {
                     e.printStackTrace();
                     ArrayList<DictionaryWord> ki = new ArrayList<DictionaryWord>();
                     return ki;
                 }
                 return dictinoryData;
-
             } catch (Exception e) {
                 e.printStackTrace();
                 ArrayList<DictionaryWord> ki = new ArrayList<>();
@@ -238,7 +254,7 @@ public class Dictionary extends Service {
 
                 }
 
-
+                mFloatingView.findViewById(R.id.loadingBar).setVisibility(View.GONE);
                 mTextView.setText(s);
                 mTextView.setBackgroundColor(getResources().getColor(R.color.onfind));
                 mScrollView.setBackgroundColor(getResources().getColor(R.color.onfind));
@@ -251,7 +267,7 @@ public class Dictionary extends Service {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-
+		mFloatingView.findViewById(R.id.floatingActionButton).setVisibility(View.VISIBLE);
                 mFab = mFloatingView.findViewById(R.id.floatingActionButton);
                 mFab.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -260,8 +276,6 @@ public class Dictionary extends Service {
 
                     }
                 });
-
-
             } else {
                 mTextView.setText("Word not found");
                 mTextView.setBackgroundColor(getResources().getColor(R.color.errorcode));
@@ -274,12 +288,9 @@ public class Dictionary extends Service {
 
     }
 
-
     @Override
     public void onDestroy() {
         super.onDestroy();
         if (mFloatingView != null) mWindowManager.removeView(mFloatingView);
     }
-
-
 }
