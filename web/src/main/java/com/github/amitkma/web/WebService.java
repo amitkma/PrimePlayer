@@ -12,19 +12,16 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.RelativeLayout;
 
-import com.github.amitkma.primeplayer.R;
-
 /**
  * Created by eddie on 15/1/18.
  */
-
-public class web extends Service {
+public class WebService extends Service {
     private WindowManager mWindowManager;
     private View mFloatingView;
     RelativeLayout rl;
     WebView wb;
 
-    public web() {
+    public WebService() {
     }
 
     @Override
@@ -36,40 +33,35 @@ public class web extends Service {
     public void onCreate() {
         super.onCreate();
         //Inflate the floating view layout we created
-               mFloatingView = LayoutInflater.from(this).inflate(R.layout.webx, null);
+        mFloatingView = LayoutInflater.from(this).inflate(R.layout.layout_web, null);
 
         //Add the view to the window.
         final WindowManager.LayoutParams params = new WindowManager.LayoutParams(
-                320,450,
+                320, 450,
                 WindowManager.LayoutParams.TYPE_PHONE,
-                WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH| WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+                WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
+                        | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
                 PixelFormat.TRANSLUCENT);
 
-mFloatingView.requestFocus();
-
-
-         wb = new WebView(this);
+        mFloatingView.requestFocus();
+        wb = mFloatingView.findViewById(R.id.webView);
         wb.setWebViewClient(new WebViewClient());
         wb.getSettings().setJavaScriptEnabled(true);
-wb.requestFocus();
+        wb.requestFocus();
         wb.setVerticalScrollBarEnabled(false);
 
         wb.setHorizontalScrollBarEnabled(false);
 
         wb.loadUrl("https://www.google.co.in/");
-        WebView.LayoutParams wvp;
-        wvp = new WebView.LayoutParams(250,350,10,30);
-
-        wb.setLayoutParams(wvp);
         //Specify the view position
-        params.gravity = Gravity.TOP | Gravity.RIGHT;        //Initially view will be added to top-left corner
+        params.gravity = Gravity.TOP
+                | Gravity.RIGHT;        //Initially view will be added to top-left corner
         params.x = 105;
         params.y = 130;
 
-
         //Add the view to the window
         mWindowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
-        mWindowManager.addView(wb, params);
+        mWindowManager.addView(mFloatingView, params);
 
         //mFloatingView.findViewById(R.id.button1).setOnTouchListener(new View.OnTouchListener()
 
@@ -79,22 +71,8 @@ wb.requestFocus();
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (wb != null) mWindowManager.removeView(wb);
-
+        if (wb != null) mWindowManager.removeView(mFloatingView);
         //if (mFloatingView != null) mWindowManager.removeView(mFloatingView);
     }
 
 }
-      /*  WebView wb = (WebView)findViewById(R.id.webid);
-                wb.setWebViewClient(new WebViewClient());
-        wb.getSettings().setJavaScriptEnabled(true);
-
-                wb.setVerticalScrollBarEnabled(false);
-
-                wb.setHorizontalScrollBarEnabled(false);
-
-                wb.loadUrl("https://www.google.co.in/");
-
-    }
-}
-*/

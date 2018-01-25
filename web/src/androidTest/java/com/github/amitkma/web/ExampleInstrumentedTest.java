@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("com.github.amitkma.web.test", appContext.getPackageName());
+        assertEquals("com.github.amitkma.WebService.test", appContext.getPackageName());
     }
 }
