@@ -60,6 +60,7 @@ dependencies {
 
     implementation project(':calculator')
     implementation project(':dictionary')
+    implementation project(':web')
 
     implementation mainApplication.support.appCompat
     implementation mainApplication.support.v4

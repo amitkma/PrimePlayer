@@ -14,9 +14,9 @@ import android.os.IBinder
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
+import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
-import android.view.MotionEvent
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.PopupWindow
@@ -29,6 +29,7 @@ import com.github.amitkma.primeplayer.features.addbookmarks.AddBookmarkDialog
 import com.github.amitkma.primeplayer.features.bookmarks.domain.model.Bookmark
 import com.github.amitkma.primeplayer.framework.extension.convertToPx
 import com.github.amitkma.primeplayer.framework.extension.convertToString
+import com.github.amitkma.web.WebService
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.source.ExtractorMediaSource
 import com.google.android.exoplayer2.source.MediaSource
@@ -38,6 +39,7 @@ import com.google.android.exoplayer2.trackselection.TrackSelectionArray
 import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.upstream.DataSpec
 import com.google.android.exoplayer2.upstream.FileDataSource
+import com.google.android.exoplayer2.util.Util
 import dagger.android.AndroidInjection
 import kotlinx.android.synthetic.main.activity_video_player.*
 import kotlinx.android.synthetic.main.item_playback_control.*
@@ -69,46 +71,98 @@ class VideoPlayerActivity : AppCompatActivity(), AddBookmarkDialog.AddBookmarkDi
 
     private var handler: Handler? = null
 
+    private var shouldPlay: Boolean = true
+
     private var mBound: Boolean = false
     @Inject
     lateinit var popupBookmarkAdapter: PopupBookmarkAdapter
 
     private var popupWindow: PopupWindow? = null
+    private val TAG: String = "VideoPlayerActivity";
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d(TAG, "onCreate: ");
         setContentView(R.layout.activity_video_player)
         AndroidInjection.inject(this)
-        releasePlayer()
+        clearPlayerParams()
+        if (intent != null) {
+            Timber.d("intent not null")
+            path = intent.getStringExtra("video_path")
+            videoName = intent.getStringExtra("video_name")
+            thumbnail = intent.getStringExtra("video_thumb")
+            resumeWindow = intent.getIntExtra("resume_window", C.INDEX_UNSET)
+            resumePosition = intent.getLongExtra("resume_position", C.TIME_UNSET)
+        }
         videoPlayerViewModel = ViewModelProviders.of(this, viewModelFactory)
                 .get(VideoPlayerViewModel::class.java)
-        if (intent != null) {
+        initializeView()
+    }
+
+    private fun clearPlayerParams() {
+        resumeWindow =  C.INDEX_UNSET
+        resumePosition = C.TIME_UNSET
+        shouldPlay = true
+    }
+
+    override fun onStart() {
+        super.onStart()
+        Log.d(TAG, "onStart: ");
+        if (Util.SDK_INT > 23) {
             initializePlayer()
         }
-        initializeView()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Log.d(TAG, "onResume: ");
+        if (Util.SDK_INT <= 23 || exoPlayer == null) {
+            initializePlayer()
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        Log.d(TAG, "onPause: ");
+        if (Util.SDK_INT <= 23) {
+            releasePlayer()
+        }
     }
 
     override fun onStop() {
         super.onStop()
+        Log.d(TAG, "onStop: ");
         if (mBound) {
             unbindService(connection)
             mBound = false
+        }
+        if (Util.SDK_INT > 23) {
+            releasePlayer()
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        releasePlayer()
+        Log.d(TAG, "onDestroy: ");
     }
 
-
     private fun initializeView() {
+
+        addBookmarkImageButton.setOnClickListener {
+            resumeWindow = exoPlayer!!.currentWindowIndex
+            resumePosition = Math.max(0, exoPlayer!!.contentPosition)
+            shouldPlay = exoPlayer!!.playWhenReady
+            setPlayPause(false)
+            val dialogFragment = AddBookmarkDialog.newInstance(
+                    videoName + " Bookmark")
+            dialogFragment.show(fragmentManager, "bookmark_dialog")
+        }
+
         playerView.setOnTouchListener({ _, e ->
             if (mBound) {
                 unbindService(connection)
                 mBound = false
             } else if (popupWindow != null) {
-                Toast.makeText(this, "Here", Toast.LENGTH_SHORT).show()
                 popupWindow!!.dismiss()
                 popupWindow = null
             } else {
@@ -116,14 +170,6 @@ class VideoPlayerActivity : AppCompatActivity(), AddBookmarkDialog.AddBookmarkDi
             }
             true
         })
-        addBookmarkImageButton.setOnClickListener {
-            resumeWindow = exoPlayer!!.currentWindowIndex
-            resumePosition = Math.max(0, exoPlayer!!.contentPosition)
-            setPlayPause(false)
-            val dialogFragment = AddBookmarkDialog.newInstance(
-                    videoName + " Bookmark")
-            dialogFragment.show(fragmentManager, "bookmark_dialog")
-        }
 
         calculatorImageView.setOnClickListener {
             if (!mBound) {
@@ -131,7 +177,6 @@ class VideoPlayerActivity : AppCompatActivity(), AddBookmarkDialog.AddBookmarkDi
                 bindService(intent, connection, Context.BIND_AUTO_CREATE)
                 mBound = true
             } else if (popupWindow != null) {
-                Toast.makeText(this, "Here", Toast.LENGTH_SHORT).show()
                 popupWindow!!.dismiss()
                 popupWindow = null
             } else {
@@ -146,7 +191,21 @@ class VideoPlayerActivity : AppCompatActivity(), AddBookmarkDialog.AddBookmarkDi
                 bindService(intent, connection, Context.BIND_AUTO_CREATE)
                 mBound = true
             } else if (popupWindow != null) {
-                Toast.makeText(this, "Here", Toast.LENGTH_SHORT).show()
+                popupWindow!!.dismiss()
+                popupWindow = null
+
+            } else {
+                unbindService(connection)
+                mBound = false
+            }
+        }
+
+        searchImageView.setOnClickListener {
+            if (!mBound) {
+                val intent = Intent(this, WebService::class.java)
+                bindService(intent, connection, Context.BIND_AUTO_CREATE)
+                mBound = true
+            } else if (popupWindow != null) {
                 popupWindow!!.dismiss()
                 popupWindow = null
 
@@ -161,7 +220,6 @@ class VideoPlayerActivity : AppCompatActivity(), AddBookmarkDialog.AddBookmarkDi
                 unbindService(connection)
                 mBound = false
             } else if (popupWindow != null) {
-                Toast.makeText(this, "Here", Toast.LENGTH_SHORT).show()
                 popupWindow!!.dismiss()
                 popupWindow = null
             } else {
@@ -176,7 +234,8 @@ class VideoPlayerActivity : AppCompatActivity(), AddBookmarkDialog.AddBookmarkDi
                     android.content.Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
             val view: View = inflater.inflate(R.layout.popup_bookmark, null)
             popupWindow = PopupWindow(view, LinearLayout.LayoutParams.WRAP_CONTENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT, true)
+                    LinearLayout.LayoutParams.WRAP_CONTENT, false)
+            popupWindow!!.isOutsideTouchable = true
             popupWindow!!.width = 360.convertToPx().toInt()
             val recyclerView = view.findViewById<RecyclerView>(R.id.bookmarkPopupRecyclerView)
             recyclerView.layoutManager = LinearLayoutManager(this)
@@ -218,25 +277,17 @@ class VideoPlayerActivity : AppCompatActivity(), AddBookmarkDialog.AddBookmarkDi
         exoPlayer = ExoPlayerFactory.newSimpleInstance(applicationContext, DefaultTrackSelector())
         exoPlayer!!.addListener(eventListener)
 
-        path = intent.getStringExtra("video_path")
-
         val uri = Uri.fromFile(File(path))
-
-        videoName = intent.getStringExtra("video_name")
-        title = videoName
-        thumbnail = intent.getStringExtra("video_thumb")
-        resumeWindow = intent.getIntExtra("resume_window", C.INDEX_UNSET)
-        resumePosition = intent.getLongExtra("resume_position", C.TIME_UNSET)
-
-
         val dataSource: MediaSource = prepareDataSource(uri)
 
         playerView.player = exoPlayer
-        setPlayPause(true)
+        setPlayPause(shouldPlay)
+
         val haveResumePosition: Boolean = resumeWindow != C.INDEX_UNSET
         if (haveResumePosition) {
             exoPlayer!!.seekTo(resumeWindow, resumePosition)
         }
+
         mediaControllerProgress.requestFocus()
         mediaControllerProgress.progress = 0
         mediaControllerProgress.max = (exoPlayer!!.duration / 1000).toInt()
@@ -276,7 +327,9 @@ class VideoPlayerActivity : AppCompatActivity(), AddBookmarkDialog.AddBookmarkDi
 
     private fun releasePlayer() {
         if (exoPlayer != null) {
-            setPlayPause(false)
+            shouldPlay = exoPlayer!!.playWhenReady
+            resumeWindow = exoPlayer!!.currentWindowIndex
+            resumePosition = Math.max(0, exoPlayer!!.contentPosition)
             exoPlayer!!.release()
             exoPlayer = null
         }
@@ -291,6 +344,7 @@ class VideoPlayerActivity : AppCompatActivity(), AddBookmarkDialog.AddBookmarkDi
 
         override fun onSeekProcessed() {
             Timber.d("seekProcessed")
+            setPlayerProgress()
         }
 
         override fun onTracksChanged(trackGroups: TrackGroupArray?,
@@ -349,12 +403,14 @@ class VideoPlayerActivity : AppCompatActivity(), AddBookmarkDialog.AddBookmarkDi
 
         handler!!.post(object : Runnable {
             override fun run() {
-                if (exoPlayer != null && exoPlayer!!.playWhenReady) {
+                if (exoPlayer != null) {
                     mediaControllerProgress.max = (exoPlayer!!.duration / 1000).toInt()
                     mediaControllerProgress.progress = (exoPlayer!!.contentPosition / 1000).toInt()
                     currentTimeTextView.text = exoPlayer!!.contentPosition.toInt().convertToString()
                     endTimeTextView.text = exoPlayer!!.duration.toInt().convertToString()
-                    handler!!.postDelayed(this, 1000)
+                    if(exoPlayer!!.playWhenReady){
+                        handler!!.postDelayed(this, 1000)
+                    }
                 }
             }
 
@@ -366,14 +422,14 @@ class VideoPlayerActivity : AppCompatActivity(), AddBookmarkDialog.AddBookmarkDi
     }
 
     override fun onDialogAddClick(bookmarkName: String) {
-        setPlayPause(true)
+        setPlayPause(shouldPlay)
         videoPlayerViewModel.addBookmark(path, bookmarkName, thumbnail, resumeWindow,
                 resumePosition)
         Toast.makeText(this, "Bookmark added", Toast.LENGTH_SHORT).show()
     }
 
     override fun onDialogCancelClick() {
-        setPlayPause(true)
+        setPlayPause(shouldPlay)
         Toast.makeText(this, "Bookmark cancelled", Toast.LENGTH_SHORT).show()
     }
 }

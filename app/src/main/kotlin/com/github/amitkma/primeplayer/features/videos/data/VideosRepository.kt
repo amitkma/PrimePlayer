@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.provider.MediaStore
 import com.github.amitkma.primeplayer.features.videos.domain.model.Video
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -13,16 +14,12 @@ import javax.inject.Inject
  */
 class VideosRepository
 @Inject constructor(private val context: Context) {
-
-    /**
-     * Empty list of [Video].
-     */
-    private var videos = mutableListOf<Video>()
-
     /**
      * @return List of [Video] fetched from storage.
      */
     fun videos(): List<Video> {
+        Timber.d("videos()")
+        val videos = mutableListOf<Video>()
         val uri: Uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
 
         val projection = arrayOf(MediaStore.MediaColumns.DATA,

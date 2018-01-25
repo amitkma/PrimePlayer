@@ -121,6 +121,7 @@ class VideosActivity : AppCompatActivity() {
 
     private fun setupScreenForSuccess(data: List<Video>?) {
         if (data != null && data.isNotEmpty()) {
+            Timber.d("Size:" +data.size)
             videosAdapter.list = data
         } else {
             Timber.d("data is empty")

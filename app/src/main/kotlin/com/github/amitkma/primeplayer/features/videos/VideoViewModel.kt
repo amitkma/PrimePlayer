@@ -8,6 +8,7 @@ import com.github.amitkma.primeplayer.features.videos.domain.usecase.VideoUseCas
 import com.github.amitkma.primeplayer.framework.interactor.UseCase
 import com.github.amitkma.primeplayer.framework.vo.Resource
 import com.github.amitkma.primeplayer.framework.vo.ResourceState
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -46,6 +47,7 @@ class VideoViewModel
      */
     inner class UseCaseCallbackWrapper : UseCase.UseCaseCallback<List<Video>> {
         override fun onSuccess(response: List<Video>) {
+            Timber.d("VM size"+response.size)
             videosLiveData.postValue(Resource(ResourceState.SUCCESS, response, null))
         }
 
