@@ -19,9 +19,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:elevation="10dp"
-    android:orientation="vertical"
-    app:bounded_height="384dp"
-    app:bounded_width="216dp">
+    android:orientation="vertical">
 
     <include
         layout="@layout/display"

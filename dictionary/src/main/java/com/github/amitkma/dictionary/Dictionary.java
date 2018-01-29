@@ -12,18 +12,25 @@ import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
-import android.support.design.widget.FloatingActionButton;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.EditText;
-import android.widget.ImageButton;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.github.amitkma.dictionary.api.OxfordApiService;
+import com.github.amitkma.dictionary.model.LexicalEntry;
+import com.github.amitkma.dictionary.model.MeaningModel;
+import com.github.amitkma.dictionary.model.OxfordModel;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -34,61 +41,43 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.net.ssl.HttpsURLConnection;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 /**
  * Created by kuldeep on 19/1/18.
  */
 
-public class Dictionary extends Service {
+public class Dictionary {
     private WindowManager mWindowManager;
     public View mFloatingView;
-    public ScrollView mScrollView;
-    public TextView mTextView;
     EditText mEditText;
-    public FloatingActionButton mFab;
     ImageView mImageButton;
+    private ProgressBar mProgressBar;
+    private RecyclerView mRecyclerView;
+    private List<MeaningModel> mMeaningList;
+    private MeaningAdapter mMeaningAdapter;
+    private FrameLayout mNoConnection;
+    private final Context mContext;
 
-    public Dictionary() {
+    private static final String TAG = "Dictionary";
+
+    public Dictionary(Context context) {
+        this.mContext = context;
     }
 
-    @Nullable
-    @Override
-    public IBinder onBind(Intent intent) {
-        return null;
-    }
-
-    //@Override
-    public void onCreate() {
-        super.onCreate();
-
-        setTheme(R.style.Theme_AppCompat_Light_NoActionBar);
+    public View getView() {
 
         //Inflate the floating view layout we created
-        mFloatingView = LayoutInflater.from(this).inflate(R.layout.layout_dictionary, null);
+        mFloatingView = LayoutInflater.from(mContext).inflate(R.layout.layout_dictionary, null);
 
-        mTextView = mFloatingView.findViewById(R.id.textView);
         mEditText = mFloatingView.findViewById(R.id.editText);
         mImageButton = mFloatingView.findViewById(R.id.button);
-        mScrollView = mFloatingView.findViewById(R.id.scrollView3);
-
-        //Add the view to the window.
-        final WindowManager.LayoutParams params = new WindowManager.LayoutParams(
-                320, 450,
-                WindowManager.LayoutParams.TYPE_PHONE,
-                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
-                        | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
-                PixelFormat.TRANSLUCENT);
-
-        //Specify the view position
-        params.gravity = Gravity.TOP
-                | Gravity.RIGHT;        //Initially view will be added to top-left corner
-        params.x = 105;
-        params.y = 130;
-
-        //Add the view to the window
-        mWindowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
         mFloatingView.findViewById(R.id.refreshButton).setOnClickListener(
                 new View.OnClickListener() {
                     @Override
@@ -96,201 +85,101 @@ public class Dictionary extends Service {
                         makeRequest();
                     }
                 });
-	mFloatingView.findViewById(R.id.floatingActionButton).setVisibility(View.GONE);
-        mWindowManager.addView(mFloatingView, params);
-
+        mRecyclerView = mFloatingView.findViewById(R.id.recyclerView);
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(mContext));
+        mRecyclerView.setHasFixedSize(true);
+        mMeaningList = new ArrayList<>();
+        mMeaningAdapter = new MeaningAdapter(mMeaningList);
+        mRecyclerView.setAdapter(mMeaningAdapter);
+        mProgressBar = mFloatingView.findViewById(R.id.loadingBar);
+        mNoConnection = mFloatingView.findViewById(R.id.noConnectionView);
         mImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 makeRequest();
             }
         });
+        return  mFloatingView;
     }
 
     private void makeRequest() {
-	mFloatingView.findViewById(R.id.floatingActionButton).setVisibility(View.GONE);
-        mFloatingView.findViewById(R.id.noConnectionView).setVisibility(View.GONE);
-        mFloatingView.findViewById(R.id.loadingBar).setVisibility(View.VISIBLE);
+        mRecyclerView.setVisibility(View.GONE);
+        mNoConnection.setVisibility(View.GONE);
+        mProgressBar.setVisibility(View.VISIBLE);
         ConnectivityManager connMgr = (ConnectivityManager)
-                getSystemService(Context.CONNECTIVITY_SERVICE);
+                mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
         if (networkInfo != null && networkInfo.isConnected()) {
             if (mEditText.getText().toString().matches("")) {
-                Toast.makeText(mFloatingView.getContext(), "no word to search",
+                Toast.makeText(mFloatingView.getContext(), "No word to search",
                         Toast.LENGTH_SHORT).show();
-                mFloatingView.findViewById(R.id.loadingBar).setVisibility(View.GONE);
+                mProgressBar.setVisibility(View.GONE);
             } else {
-                new CallbackTask().execute(inflections());
-                mTextView.setText("Searching");
-                mTextView.setBackgroundColor(Color.WHITE);
-                mScrollView.setBackgroundColor(Color.WHITE);
+                makeApiRequest();
             }
         } else {
-            mFloatingView.findViewById(R.id.loadingBar).setVisibility(View.GONE);
-            mFloatingView.findViewById(R.id.noConnectionView).setVisibility(View.VISIBLE);
+            mProgressBar.setVisibility(View.GONE);
+            mNoConnection.setVisibility(View.VISIBLE);
         }
     }
 
-    public String inflections() {
-        final String language = "en";
-
-        final String word = mEditText.getText().toString().trim();
-        final String word_id =
-                word.toLowerCase(); //word id is case sensitive and lowercase is required
-        return "https://od-api.oxforddictionaries.com:443/api/v1/entries/" + language + "/"
-                + word_id;
-    }
-
-    //in android calling network requests on the main thread forbidden by default
-    //create class to do async job
-    private class CallbackTask extends AsyncTask<String, Integer, ArrayList<DictionaryWord>> {
-        DictionaryWord d1;
-        public MediaPlayer mediaPlayer = new MediaPlayer();
-
-        @Override
-        protected ArrayList<DictionaryWord> doInBackground(String... params) {
-
-            //TODO: replace with your own app id and app key
-            final String app_id = "adc0285b";
-            final String app_key = "8135a43940bb5877b79b8c127bc1c99c";
-            try {
-                URL url = new URL(params[0]);
-                HttpsURLConnection urlConnection = (HttpsURLConnection) url.openConnection();
-                urlConnection.setRequestProperty("Accept", "application/json");
-                urlConnection.setRequestProperty("app_id", app_id);
-                urlConnection.setRequestProperty("app_key", app_key);
-
-                // read the output from the server
-                BufferedReader reader = new BufferedReader(
-                        new InputStreamReader(urlConnection.getInputStream()));
-                StringBuilder stringBuilder = new StringBuilder();
-
-                String line = null;
-                while ((line = reader.readLine()) != null) {
-                    stringBuilder.append(line + "\n");
-                }
-                urlConnection.disconnect();
-
-                String def = "eror";
-                ArrayList<DictionaryWord> dictinoryData = new ArrayList<>();
-                try {
-                    JSONObject js = new JSONObject(stringBuilder.toString());
-                    JSONArray results = js.getJSONArray("results");
-
-                    JSONObject lentries = results.getJSONObject(0);
-                    //add
-                    String id = (String) lentries.get("id");
-                    JSONArray la = lentries.getJSONArray("lexicalEntries");
-
-                    JSONObject entries = la.getJSONObject(0);
-                    //retriving url
-                    JSONArray urls = entries.getJSONArray("pronunciations");
-
-                    JSONObject get_url = urls.getJSONObject(0);
-                    String audio_url = get_url.getString("audioFile");
-
-                    String Deriv = "bhai ja";
-
-                 /*  JSONArray derivate = entries.getJSONArray("derivatives");
-                    JSONObject jobjDer= derivate.getJSONObject(0);
-                    //add
-                    String Deriv = jobjDer.getString("text");*/
-
-                    JSONArray e = entries.getJSONArray("entries");
-
-                    JSONObject senses = e.getJSONObject(0);
-                    JSONArray s = senses.getJSONArray("senses");//s==j4
-                    for (int i = 0; i < s.length(); i++) {
-                        JSONObject d = s.getJSONObject(i);
-                        JSONArray de = d.getJSONArray("definitions");
-
-                        String mean = de.getString(0);
-
-                        try {
-                            JSONArray examp = d.getJSONArray("examples");
-                            ArrayList<String> expary = new ArrayList<>();
-                            for (int j = 0; j < examp.length(); j++) {
-                                JSONObject text = examp.getJSONObject(j);
-                                expary.add(text.getString("text"));
-                            }
-                            dictinoryData.add(
-                                    new DictionaryWord(id, Deriv, mean, expary, audio_url));
-                        } catch (Exception e1) {
-                            Log.d("Main_activity", "no examples");
-                            dictinoryData.add(new DictionaryWord(id, Deriv, mean, audio_url));
-                        }
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    ArrayList<DictionaryWord> ki = new ArrayList<DictionaryWord>();
-                    return ki;
-                }
-                return dictinoryData;
-            } catch (Exception e) {
-                e.printStackTrace();
-                ArrayList<DictionaryWord> ki = new ArrayList<>();
-                return ki;
-            }
-        }
-
-        @Override
-        protected void onPostExecute(ArrayList<DictionaryWord> arrayList) {
-            super.onPostExecute(arrayList);
-
-            if (arrayList.size() != 0) {
-                String s = "";
-                ArrayList<String> exple;
-                for (int i = 0; i < arrayList.size(); i++) {
-                    s = s + "Definition" + "\n" + arrayList.get(i).getMeanWrd() + "\n\n";
-
-                    exple = arrayList.get(i).getExamples();
-                    if (exple != null) {
-                        s = s + "Examples" + "\n";
-                        for (int j = 0; j < exple.size(); j++) {
-                            s = s + exple.get(j) + "\n\n";
-                        }
-                    }
-                    s = s + "\n\n";
-
-                }
-
-                mFloatingView.findViewById(R.id.loadingBar).setVisibility(View.GONE);
-                mTextView.setText(s);
-                mTextView.setBackgroundColor(getResources().getColor(R.color.onfind));
-                mScrollView.setBackgroundColor(getResources().getColor(R.color.onfind));
-                d1 = arrayList.get(0);
-                mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-                try {
-                    mediaPlayer.setDataSource(d1.getAudioUrl());
-                    mediaPlayer.prepare();
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-		mFloatingView.findViewById(R.id.floatingActionButton).setVisibility(View.VISIBLE);
-                mFab = mFloatingView.findViewById(R.id.floatingActionButton);
-                mFab.setOnClickListener(new View.OnClickListener() {
+    private void makeApiRequest() {
+        OxfordApiService.Creator.makeOxfordService().getWordDetails(
+                mEditText.getText().toString().trim())
+                .enqueue(new Callback<OxfordModel>() {
                     @Override
-                    public void onClick(View v) {
-                        mediaPlayer.start();
+                    public void onResponse(Call<OxfordModel> call, Response<OxfordModel> response) {
+                        Log.d(TAG, "onResponse() called with: call = [" + call + "], response = ["
+                                + response + "]");
+                        mProgressBar.setVisibility(View.GONE);
+                        if (response.isSuccessful()) {
+                            mRecyclerView.setVisibility(View.VISIBLE);
+                            OxfordModel oxfordModel = response.body();
+                            if (oxfordModel != null) {
+                                if (oxfordModel.results.size() > 0) {
+                                    parseDictionaryData(
+                                            oxfordModel.results.get(0).lexicalEntries);
+                                }
+                            } else {
+                                Toast.makeText(mContext, "Server error",
+                                        Toast.LENGTH_SHORT).show();
+                            }
+                        } else if (response.code() == 404) {
+                            Toast.makeText(mContext, "Word not found",
+                                    Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(mContext, "Server error",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    }
 
+                    @Override
+                    public void onFailure(Call<OxfordModel> call, Throwable t) {
+                        t.printStackTrace();
+                        mProgressBar.setVisibility(View.GONE);
+                        Toast.makeText(mContext, t.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
-            } else {
-                mTextView.setText("Word not found");
-                mTextView.setBackgroundColor(getResources().getColor(R.color.errorcode));
-                mScrollView.setBackgroundColor(getResources().getColor(R.color.errorcode));
-                mFab = mFloatingView.findViewById(R.id.floatingActionButton);
-                mFab.setOnClickListener(null);
-            }
-
-        }
-
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if (mFloatingView != null) mWindowManager.removeView(mFloatingView);
+
+    private void parseDictionaryData(List<LexicalEntry> results) {
+        if (results != null) {
+            mMeaningList.clear();
+            for (LexicalEntry lexicalEntry : results) {
+                MeaningModel meaningModel = new MeaningModel();
+                meaningModel.setLexicalCategory(lexicalEntry.lexicalCategory);
+                if (lexicalEntry.entries != null && lexicalEntry.entries.size() > 0) {
+                    meaningModel.setSenseList(lexicalEntry.entries.get(0).senses);
+                }
+                if (lexicalEntry.pronunciations != null && lexicalEntry.pronunciations.size() > 0) {
+                    meaningModel.setAudioFile(lexicalEntry.pronunciations.get(0).audioFile);
+                    meaningModel.setPhoneticWord(
+                            lexicalEntry.pronunciations.get(0).phoneticSpelling);
+                }
+                mMeaningList.add(meaningModel);
+            }
+            mMeaningAdapter.notifyDataSetChanged();
+        }
     }
 }

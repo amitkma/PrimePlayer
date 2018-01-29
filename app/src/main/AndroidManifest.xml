@@ -30,10 +30,6 @@
         <activity
             android:name=".features.bookmarks.BookmarkActivity"
             android:label="@string/bookmarks" />
-        <service android:name="com.github.amitkma.calculator.Calculator"
-            android:label="Calculator"/>
-        <service android:name="com.github.amitkma.dictionary.Dictionary"/>
-        <service android:name="com.github.amitkma.web.WebService"/>
     </application>
 
 </manifest>

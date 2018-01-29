@@ -5,8 +5,9 @@ import android.arch.lifecycle.ViewModelProvider
 import android.arch.lifecycle.ViewModelProviders
 import android.content.ComponentName
 import android.content.Context
-import android.content.Intent
 import android.content.ServiceConnection
+import android.graphics.PixelFormat
+import android.inputmethodservice.Keyboard
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
@@ -15,11 +16,7 @@ import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.util.Log
-import android.view.Gravity
-import android.view.LayoutInflater
-import android.view.View
-import android.widget.LinearLayout
-import android.widget.PopupWindow
+import android.view.*
 import android.widget.SeekBar
 import android.widget.Toast
 import com.github.amitkma.calculator.Calculator
@@ -27,7 +24,6 @@ import com.github.amitkma.dictionary.Dictionary
 import com.github.amitkma.primeplayer.R
 import com.github.amitkma.primeplayer.features.addbookmarks.AddBookmarkDialog
 import com.github.amitkma.primeplayer.features.bookmarks.domain.model.Bookmark
-import com.github.amitkma.primeplayer.framework.extension.convertToPx
 import com.github.amitkma.primeplayer.framework.extension.convertToString
 import com.github.amitkma.web.WebService
 import com.google.android.exoplayer2.*
@@ -77,8 +73,22 @@ class VideoPlayerActivity : AppCompatActivity(), AddBookmarkDialog.AddBookmarkDi
     @Inject
     lateinit var popupBookmarkAdapter: PopupBookmarkAdapter
 
-    private var popupWindow: PopupWindow? = null
     private val TAG: String = "VideoPlayerActivity";
+
+    private var mWindowManager: WindowManager? = null
+
+    private lateinit var popupView: View
+
+    private var isShowingPopup: Boolean = false
+
+    private lateinit var params: WindowManager.LayoutParams
+
+    private val CALCULATOR_VIEW = 101
+    private val DICTIONARY_VIEW = 102
+    private val BOOKMARK_LIST_VIEW = 103
+    private val SEARCH_VIEW = 104
+
+    private var CURRENTLY_VISIBLE = Int.MIN_VALUE
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -100,7 +110,7 @@ class VideoPlayerActivity : AppCompatActivity(), AddBookmarkDialog.AddBookmarkDi
     }
 
     private fun clearPlayerParams() {
-        resumeWindow =  C.INDEX_UNSET
+        resumeWindow = C.INDEX_UNSET
         resumePosition = C.TIME_UNSET
         shouldPlay = true
     }
@@ -130,15 +140,14 @@ class VideoPlayerActivity : AppCompatActivity(), AddBookmarkDialog.AddBookmarkDi
     }
 
     override fun onStop() {
-        super.onStop()
         Log.d(TAG, "onStop: ");
-        if (mBound) {
-            unbindService(connection)
-            mBound = false
+        if (isShowingPopup) {
+            removeView()
         }
         if (Util.SDK_INT > 23) {
             releasePlayer()
         }
+        super.onStop()
     }
 
     override fun onDestroy() {
@@ -147,6 +156,20 @@ class VideoPlayerActivity : AppCompatActivity(), AddBookmarkDialog.AddBookmarkDi
     }
 
     private fun initializeView() {
+
+        mWindowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        params = WindowManager.LayoutParams(
+                320, 450,
+                WindowManager.LayoutParams.TYPE_PHONE,
+                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
+                        or WindowManager.LayoutParams.FLAG_DIM_BEHIND,
+                PixelFormat.TRANSLUCENT)
+
+        //Specify the popupView position
+        params.gravity = Gravity.TOP or Gravity.RIGHT   //Initially popupView will be added to top-left corner
+        params.x = 105
+        params.y = 130
+        params.dimAmount = 0.3f
 
         addBookmarkImageButton.setOnClickListener {
             resumeWindow = exoPlayer!!.currentWindowIndex
@@ -159,12 +182,8 @@ class VideoPlayerActivity : AppCompatActivity(), AddBookmarkDialog.AddBookmarkDi
         }
 
         playerView.setOnTouchListener({ _, e ->
-            if (mBound) {
-                unbindService(connection)
-                mBound = false
-            } else if (popupWindow != null) {
-                popupWindow!!.dismiss()
-                popupWindow = null
+            if (isShowingPopup) {
+                removeView()
             } else {
                 playerView.onTouchEvent(e)
             }
@@ -172,105 +191,132 @@ class VideoPlayerActivity : AppCompatActivity(), AddBookmarkDialog.AddBookmarkDi
         })
 
         calculatorImageView.setOnClickListener {
-            if (!mBound) {
-                val intent = Intent(this, Calculator::class.java)
-                bindService(intent, connection, Context.BIND_AUTO_CREATE)
-                mBound = true
-            } else if (popupWindow != null) {
-                popupWindow!!.dismiss()
-                popupWindow = null
-            } else {
-                unbindService(connection)
-                mBound = false
+            val view = Calculator(this)
+            if (isShowingPopup && CURRENTLY_VISIBLE != CALCULATOR_VIEW) {
+                removeView()
+                popupView = view.view
+                addView(CALCULATOR_VIEW)
+            } else if (CURRENTLY_VISIBLE != CALCULATOR_VIEW) {
+                popupView = view.view
+                addView(CALCULATOR_VIEW)
             }
         }
 
         dictionaryImageView.setOnClickListener {
-            if (!mBound) {
-                val intent = Intent(this, Dictionary::class.java)
-                bindService(intent, connection, Context.BIND_AUTO_CREATE)
-                mBound = true
-            } else if (popupWindow != null) {
-                popupWindow!!.dismiss()
-                popupWindow = null
-
-            } else {
-                unbindService(connection)
-                mBound = false
+            val view = Dictionary(this)
+            if (isShowingPopup && CURRENTLY_VISIBLE != DICTIONARY_VIEW) {
+                removeView()
+                popupView = view.view
+                addView(DICTIONARY_VIEW)
+            } else if (CURRENTLY_VISIBLE != DICTIONARY_VIEW) {
+                popupView = view.view
+                addView(DICTIONARY_VIEW)
             }
         }
 
         searchImageView.setOnClickListener {
-            if (!mBound) {
-                val intent = Intent(this, WebService::class.java)
-                bindService(intent, connection, Context.BIND_AUTO_CREATE)
-                mBound = true
-            } else if (popupWindow != null) {
-                popupWindow!!.dismiss()
-                popupWindow = null
-
-            } else {
-                unbindService(connection)
-                mBound = false
+            val view = WebService(this)
+            if (isShowingPopup && CURRENTLY_VISIBLE != SEARCH_VIEW) {
+                removeView()
+                popupView = view.view
+                addView(SEARCH_VIEW)
+            } else if (CURRENTLY_VISIBLE != SEARCH_VIEW) {
+                popupView = view.view
+                addView(SEARCH_VIEW)
             }
         }
 
         bookmarkListImageView.setOnClickListener {
-            if (mBound) {
-                unbindService(connection)
-                mBound = false
-            } else if (popupWindow != null) {
-                popupWindow!!.dismiss()
-                popupWindow = null
-            } else {
-                createBookmarkPopupWindow()
+            if (isShowingPopup && CURRENTLY_VISIBLE != BOOKMARK_LIST_VIEW) {
+                removeView()
+                popupView = createBookmarkPopupWindow()
+                addView(BOOKMARK_LIST_VIEW)
+            } else if (CURRENTLY_VISIBLE != BOOKMARK_LIST_VIEW) {
+                popupView = createBookmarkPopupWindow()
+                addView(BOOKMARK_LIST_VIEW)
             }
         }
     }
 
-    private fun createBookmarkPopupWindow() {
-        try {
-            val inflater: LayoutInflater = this.getSystemService(
-                    android.content.Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
-            val view: View = inflater.inflate(R.layout.popup_bookmark, null)
-            popupWindow = PopupWindow(view, LinearLayout.LayoutParams.WRAP_CONTENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT, false)
-            popupWindow!!.isOutsideTouchable = true
-            popupWindow!!.width = 360.convertToPx().toInt()
-            val recyclerView = view.findViewById<RecyclerView>(R.id.bookmarkPopupRecyclerView)
-            recyclerView.layoutManager = LinearLayoutManager(this)
-            recyclerView.adapter = popupBookmarkAdapter
-            popupBookmarkAdapter.clickListener = {
-                exoPlayer!!.seekTo(it.resumeWindow, it.resumePosition)
-            }
-            val observer = Observer<List<Bookmark>> {
-                if (it != null && it.isNotEmpty()) {
-                    popupBookmarkAdapter.list = it
-                } else if (it != null && it.isEmpty()) {
-                    popupWindow!!.dismiss()
-                    Toast.makeText(this, "No bookmark for this video", Toast.LENGTH_SHORT).show()
-                }
-            }
-            videoPlayerViewModel.getVideoBookmarks(path).observe(this, observer)
+    private fun createBookmarkPopupWindow(): View {
 
-            popupWindow!!.setOnDismissListener {
-                if (videoPlayerViewModel.getVideoBookmarks(path).hasObservers()) {
-                    videoPlayerViewModel.getVideoBookmarks(path).removeObserver(observer)
-                }
-            }
-            popupWindow!!.showAtLocation(bookmarkListImageView, Gravity.RIGHT, 0, 0)
-        } catch (e: Exception) {
-            e.printStackTrace()
+        val inflater: LayoutInflater = this.getSystemService(
+                android.content.Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+        val view = inflater.inflate(R.layout.popup_bookmark, null)
+
+        val recyclerView = view.findViewById<RecyclerView>(R.id.bookmarkPopupRecyclerView)
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.adapter = popupBookmarkAdapter
+        popupBookmarkAdapter.clickListener = {
+            exoPlayer!!.seekTo(it.resumeWindow, it.resumePosition)
         }
+        val observer = Observer<List<Bookmark>> {
+            if (it != null && it.isNotEmpty()) {
+                popupBookmarkAdapter.list = it
+            } else if (it != null && it.isEmpty()) {
+                if (CURRENTLY_VISIBLE == BOOKMARK_LIST_VIEW)
+                    removeView()
+                Toast.makeText(this, "No bookmark for this video", Toast.LENGTH_SHORT).show()
+            }
+        }
+        videoPlayerViewModel.getVideoBookmarks(path).observe(this, observer)
+        return view
     }
 
-    private val connection: ServiceConnection = object : ServiceConnection {
-        override fun onServiceDisconnected(name: ComponentName?) {
-        }
+    private fun removeView() {
+        mWindowManager!!.removeView(popupView)
+        isShowingPopup = false
+        CURRENTLY_VISIBLE = Int.MIN_VALUE
+    }
 
-        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-        }
+    private fun addView(visibleView: Int) {
+        mWindowManager!!.addView(popupView, params)
+        isShowingPopup = true
+        CURRENTLY_VISIBLE = visibleView
+    }
 
+    override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
+        if (keyCode == KeyEvent.KEYCODE_SPACE) {
+            setPlayPause(!exoPlayer!!.playWhenReady)
+            return true
+        }
+        else if (keyCode == KeyEvent.KEYCODE_C) {
+            val view = Calculator(this)
+            if (isShowingPopup && CURRENTLY_VISIBLE != CALCULATOR_VIEW) {
+                removeView()
+                popupView = view.view
+                addView(CALCULATOR_VIEW)
+            } else if (CURRENTLY_VISIBLE != CALCULATOR_VIEW) {
+                popupView = view.view
+                addView(CALCULATOR_VIEW)
+            }
+            return true
+        }
+        else if (keyCode == KeyEvent.KEYCODE_D) {
+            val view = Dictionary(this)
+            if (isShowingPopup && CURRENTLY_VISIBLE != DICTIONARY_VIEW) {
+                removeView()
+                popupView = view.view
+                addView(DICTIONARY_VIEW)
+            } else if (CURRENTLY_VISIBLE != DICTIONARY_VIEW) {
+                popupView = view.view
+                addView(DICTIONARY_VIEW)
+            }
+            return true
+        }
+        else if (keyCode == KeyEvent.KEYCODE_G) {
+            val view = WebService(this)
+            if (isShowingPopup && CURRENTLY_VISIBLE != SEARCH_VIEW) {
+                removeView()
+                popupView = view.view
+                addView(SEARCH_VIEW)
+            } else if (CURRENTLY_VISIBLE != SEARCH_VIEW) {
+                popupView = view.view
+                addView(SEARCH_VIEW)
+            }
+            return true
+        }else
+            return super.onKeyUp(keyCode, event)
     }
 
     private fun initializePlayer() {
@@ -408,7 +454,7 @@ class VideoPlayerActivity : AppCompatActivity(), AddBookmarkDialog.AddBookmarkDi
                     mediaControllerProgress.progress = (exoPlayer!!.contentPosition / 1000).toInt()
                     currentTimeTextView.text = exoPlayer!!.contentPosition.toInt().convertToString()
                     endTimeTextView.text = exoPlayer!!.duration.toInt().convertToString()
-                    if(exoPlayer!!.playWhenReady){
+                    if (exoPlayer!!.playWhenReady) {
                         handler!!.postDelayed(this, 1000)
                     }
                 }

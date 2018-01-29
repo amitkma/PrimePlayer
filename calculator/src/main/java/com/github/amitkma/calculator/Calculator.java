@@ -16,6 +16,8 @@
 
 package com.github.amitkma.calculator;
 
+import static android.content.Context.WINDOW_SERVICE;
+
 import android.animation.Animator;
 import android.animation.Animator.AnimatorListener;
 import android.animation.AnimatorListenerAdapter;
@@ -25,6 +27,7 @@ import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.animation.ValueAnimator.AnimatorUpdateListener;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
@@ -35,6 +38,7 @@ import android.support.v4.view.ViewPager;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -48,7 +52,7 @@ import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.Button;
 import android.widget.TextView;
 
-public class Calculator extends Service
+public class Calculator
         implements CalculatorEditText.OnTextSizeChangeListener, View.OnClickListener,
         CalculatorExpressionEvaluator.EvaluateCallback, OnLongClickListener {
 
@@ -64,22 +68,6 @@ public class Calculator extends Service
     public static final int INVALID_RES_ID = -1;
     private WindowManager mWindowManager;
     private View view;
-
-    public IBinder mIBinder = new LocalBinder();
-
-    @Nullable
-    @Override
-    public IBinder onBind(Intent intent) {
-        return mIBinder;
-    }
-
-    public class LocalBinder extends Binder {
-
-        public Calculator getCalculatorServiceInstance() {
-            return Calculator.this;
-        }
-    }
-
 
     private enum CalculatorState {
         INPUT, EVALUATE, RESULT, ERROR
@@ -137,31 +125,18 @@ public class Calculator extends Service
     private View mClearButton;
     private View mEqualButton;
 
+    private Context mContext;
+
     private Animator mCurrentAnimator;
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
+    public Calculator(Context context){
+        mContext = context;
+    }
+
+    public View getView() {
 
         //Inflate the floating view layout we created
-        view = LayoutInflater.from(this).inflate(R.layout.item_calculator_port, null);
-
-        //Add the view to the window.
-        final WindowManager.LayoutParams params = new WindowManager.LayoutParams(
-                320,450,
-                WindowManager.LayoutParams.TYPE_PHONE, WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL| WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
-                PixelFormat.TRANSLUCENT);
-
-        //Specify the view position
-        params.gravity = Gravity.TOP
-                | Gravity.RIGHT;   //Initially view will be added to top-left corner
-        params.x = 105;
-        params.y = 130;
-
-        //Add the view to the window
-        mWindowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
-        assert mWindowManager != null;
-        mWindowManager.addView(view, params);
+        view = LayoutInflater.from(mContext).inflate(R.layout.item_calculator_port, null);
 
         mDisplayView = view.findViewById(R.id.display);
         mFormulaEditText = view.findViewById(R.id.formula);
@@ -175,7 +150,7 @@ public class Calculator extends Service
             mEqualButton = view.findViewById(R.id.pad_operator).findViewById(R.id.eq);
         }
 
-        mTokenizer = new CalculatorExpressionTokenizer(this);
+        mTokenizer = new CalculatorExpressionTokenizer(mContext);
         mEvaluator = new CalculatorExpressionEvaluator(mTokenizer);
 
         mEvaluator.evaluate(mFormulaEditText.getText(), this);
@@ -215,12 +190,17 @@ public class Calculator extends Service
         view.findViewById(R.id.const_e).setOnClickListener(this);
         view.findViewById(R.id.lparen).setOnClickListener(this);
         view.findViewById(R.id.rparen).setOnClickListener(this);
+        view.findViewById(R.id.toggle_pad_advanced).setOnClickListener(this);
+        return view;
     }
 
     @Override
     public void onClick(View view) {
         int id = view.getId();
-        if (id == R.id.eq) {
+        if (id == R.id.toggle_pad_advanced) {
+            Log.d(NAME, "onClick: "+mPadViewPager.getCurrentItem());
+            mPadViewPager.setCurrentItem((mPadViewPager.getCurrentItem() + 1) % 2);
+        } else if (id == R.id.eq) {
             onEquals();
         } else if (id == R.id.del) {
             onDelete();
@@ -232,12 +212,6 @@ public class Calculator extends Service
         } else {
             mFormulaEditText.append(((Button) view).getText());
         }
-    }
-
-    @Override
-    public boolean onUnbind(Intent intent) {
-        stopSelf();
-        return super.onUnbind(intent);
     }
 
     private void setState(CalculatorState state) {
@@ -253,14 +227,14 @@ public class Calculator extends Service
             }
 
             if (state == CalculatorState.ERROR) {
-                final int errorColor = getResources().getColor(R.color.calculator_error_color);
+                final int errorColor = mContext.getResources().getColor(R.color.calculator_error_color);
                 mFormulaEditText.setTextColor(errorColor);
                 mResultEditText.setTextColor(errorColor);
             } else {
                 mFormulaEditText.setTextColor(
-                        getResources().getColor(R.color.display_formula_text_color));
+                        mContext.getResources().getColor(R.color.display_formula_text_color));
                 mResultEditText.setTextColor(
-                        getResources().getColor(R.color.display_result_text_color));
+                        mContext.getResources().getColor(R.color.display_result_text_color));
             }
         }
     }
@@ -311,7 +285,7 @@ public class Calculator extends Service
                 ObjectAnimator.ofFloat(textView, View.SCALE_Y, textScale, 1.0f),
                 ObjectAnimator.ofFloat(textView, View.TRANSLATION_X, translationX, 0.0f),
                 ObjectAnimator.ofFloat(textView, View.TRANSLATION_Y, translationY, 0.0f));
-        animatorSet.setDuration(getResources().getInteger(android.R.integer.config_mediumAnimTime));
+        animatorSet.setDuration(mContext.getResources().getInteger(android.R.integer.config_mediumAnimTime));
         animatorSet.setInterpolator(new AccelerateDecelerateInterpolator());
         animatorSet.start();
     }
@@ -340,11 +314,11 @@ public class Calculator extends Service
         mDisplayView.getGlobalVisibleRect(displayRect);
 
         // Make reveal cover the display and status bar.
-        final View revealView = new View(this);
+        final View revealView = new View(mContext);
         revealView.setBottom(displayRect.bottom);
         revealView.setLeft(displayRect.left);
         revealView.setRight(displayRect.right);
-        revealView.setBackgroundColor(getResources().getColor(colorRes));
+        revealView.setBackgroundColor(mContext.getResources().getColor(colorRes));
         groupOverlay.add(revealView);
 
         final int[] clearLocation = new int[2];
@@ -364,11 +338,11 @@ public class Calculator extends Service
                 ViewAnimationUtils.createCircularReveal(revealView,
                         revealCenterX, revealCenterY, 0.0f, revealRadius);
         revealAnimator.setDuration(
-                getResources().getInteger(android.R.integer.config_longAnimTime));
+                mContext.getResources().getInteger(android.R.integer.config_longAnimTime));
 
         final Animator alphaAnimator = ObjectAnimator.ofFloat(revealView, View.ALPHA, 0.0f);
         alphaAnimator.setDuration(
-                getResources().getInteger(android.R.integer.config_mediumAnimTime));
+                mContext.getResources().getInteger(android.R.integer.config_mediumAnimTime));
         alphaAnimator.addListener(listener);
 
         final AnimatorSet animatorSet = new AnimatorSet();
@@ -450,7 +424,7 @@ public class Calculator extends Service
                 ObjectAnimator.ofFloat(mResultEditText, View.TRANSLATION_X, resultTranslationX),
                 ObjectAnimator.ofFloat(mResultEditText, View.TRANSLATION_Y, resultTranslationY),
                 ObjectAnimator.ofFloat(mFormulaEditText, View.TRANSLATION_Y, formulaTranslationY));
-        animatorSet.setDuration(getResources().getInteger(android.R.integer.config_longAnimTime));
+        animatorSet.setDuration(mContext.getResources().getInteger(android.R.integer.config_longAnimTime));
         animatorSet.setInterpolator(new AccelerateDecelerateInterpolator());
         animatorSet.addListener(new AnimatorListenerAdapter() {
             @Override
@@ -478,11 +452,5 @@ public class Calculator extends Service
 
         mCurrentAnimator = animatorSet;
         animatorSet.start();
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if (view != null) mWindowManager.removeView(view);
     }
 }

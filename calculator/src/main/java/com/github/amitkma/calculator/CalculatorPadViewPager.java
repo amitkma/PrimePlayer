@@ -20,10 +20,14 @@ import android.content.Context;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 public class CalculatorPadViewPager extends ViewPager {
+
+    private static final String TAG = "CalculatorPadViewPager";
 
     private final PagerAdapter mStaticPagerAdapter = new PagerAdapter() {
         @Override
@@ -60,18 +64,30 @@ public class CalculatorPadViewPager extends ViewPager {
                     recursivelySetEnabled(viewGroup.getChildAt(childIndex), enabled);
                 }
             } else {
-                view.setEnabled(enabled);
+                if (view instanceof ImageView) {
+                    // Toggle advance pad should be enable always
+                } else {
+                    view.setEnabled(enabled);
+                }
+
             }
         }
 
         @Override
         public void onPageSelected(int position) {
             if (getAdapter() == mStaticPagerAdapter) {
+                //Log.d(TAG, "onPageSelected: "+getChildCount());
                 for (int childIndex = 0; childIndex < getChildCount(); ++childIndex) {
                     // Only enable subviews of the current page.
                     recursivelySetEnabled(getChildAt(childIndex), childIndex == position);
                 }
             }
+        }
+
+        @Override
+        public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+            getChildAt(1).findViewById(R.id.toggle_pad_advanced).setRotation(
+                    positionOffset * 180.0f * 4 / 3);
         }
     };
 
@@ -96,7 +112,6 @@ public class CalculatorPadViewPager extends ViewPager {
 
     public CalculatorPadViewPager(Context context, AttributeSet attrs) {
         super(context, attrs);
-
         setAdapter(mStaticPagerAdapter);
         setBackgroundColor(getResources().getColor(android.R.color.black));
         setOnPageChangeListener(mOnPageChangeListener);
