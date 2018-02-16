@@ -17,6 +17,7 @@ import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.view.*
+import android.widget.ImageView
 import android.widget.SeekBar
 import android.widget.Toast
 import com.github.amitkma.calculator.Calculator
@@ -39,6 +40,7 @@ import com.google.android.exoplayer2.util.Util
 import dagger.android.AndroidInjection
 import kotlinx.android.synthetic.main.activity_video_player.*
 import kotlinx.android.synthetic.main.item_playback_control.*
+import kotlinx.android.synthetic.main.popup_bookmark.*
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
@@ -171,16 +173,6 @@ class VideoPlayerActivity : AppCompatActivity(), AddBookmarkDialog.AddBookmarkDi
         params.y = 130
         params.dimAmount = 0.3f
 
-        addBookmarkImageButton.setOnClickListener {
-            resumeWindow = exoPlayer!!.currentWindowIndex
-            resumePosition = Math.max(0, exoPlayer!!.contentPosition)
-            shouldPlay = exoPlayer!!.playWhenReady
-            setPlayPause(false)
-            val dialogFragment = AddBookmarkDialog.newInstance(
-                    videoName + " Bookmark")
-            dialogFragment.show(fragmentManager, "bookmark_dialog")
-        }
-
         playerView.setOnTouchListener({ _, e ->
             if (isShowingPopup) {
                 removeView()
@@ -244,6 +236,17 @@ class VideoPlayerActivity : AppCompatActivity(), AddBookmarkDialog.AddBookmarkDi
                 android.content.Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
         val view = inflater.inflate(R.layout.popup_bookmark, null)
 
+        view.findViewById<ImageView>(R.id.addBookmarkImageButton).setOnClickListener {
+            resumeWindow = exoPlayer!!.currentWindowIndex
+            resumePosition = Math.max(0, exoPlayer!!.contentPosition)
+            shouldPlay = exoPlayer!!.playWhenReady
+            setPlayPause(false)
+            val dialogFragment = AddBookmarkDialog.newInstance(
+                    videoName + " Bookmark")
+            dialogFragment.show(fragmentManager, "bookmark_dialog")
+            removeView()
+        }
+
         val recyclerView = view.findViewById<RecyclerView>(R.id.bookmarkPopupRecyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = popupBookmarkAdapter
@@ -279,8 +282,7 @@ class VideoPlayerActivity : AppCompatActivity(), AddBookmarkDialog.AddBookmarkDi
         if (keyCode == KeyEvent.KEYCODE_SPACE) {
             setPlayPause(!exoPlayer!!.playWhenReady)
             return true
-        }
-        else if (keyCode == KeyEvent.KEYCODE_C) {
+        } else if (keyCode == KeyEvent.KEYCODE_C) {
             val view = Calculator(this)
             if (isShowingPopup && CURRENTLY_VISIBLE != CALCULATOR_VIEW) {
                 removeView()
@@ -291,8 +293,7 @@ class VideoPlayerActivity : AppCompatActivity(), AddBookmarkDialog.AddBookmarkDi
                 addView(CALCULATOR_VIEW)
             }
             return true
-        }
-        else if (keyCode == KeyEvent.KEYCODE_D) {
+        } else if (keyCode == KeyEvent.KEYCODE_D) {
             val view = Dictionary(this)
             if (isShowingPopup && CURRENTLY_VISIBLE != DICTIONARY_VIEW) {
                 removeView()
@@ -303,8 +304,7 @@ class VideoPlayerActivity : AppCompatActivity(), AddBookmarkDialog.AddBookmarkDi
                 addView(DICTIONARY_VIEW)
             }
             return true
-        }
-        else if (keyCode == KeyEvent.KEYCODE_G) {
+        } else if (keyCode == KeyEvent.KEYCODE_G) {
             val view = WebService(this)
             if (isShowingPopup && CURRENTLY_VISIBLE != SEARCH_VIEW) {
                 removeView()
@@ -315,7 +315,7 @@ class VideoPlayerActivity : AppCompatActivity(), AddBookmarkDialog.AddBookmarkDi
                 addView(SEARCH_VIEW)
             }
             return true
-        }else
+        } else
             return super.onKeyUp(keyCode, event)
     }
 
