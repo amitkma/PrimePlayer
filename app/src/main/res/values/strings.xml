@@ -9,4 +9,7 @@
     <string name="bookmark_name">Bookmark Name</string>
     <string name="add">Add</string>
     <string name="cancel">Cancel</string>
+
+    <string name="highlighted_items">Highlights</string>
+    <string name="highlight_name">Highlight Name</string>
 </resources>

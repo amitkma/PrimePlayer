@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/item_bookmark_add_menu"
-        android:icon="@drawable/ic_bookmark_add_white_24dp"
+        android:icon="@drawable/ic_bookmark_add_black_24dp"
         android:orderInCategory="1"
         android:title="@string/add_bookmark"
         app:showAsAction="always" />

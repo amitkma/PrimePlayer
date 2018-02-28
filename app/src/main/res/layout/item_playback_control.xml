@@ -51,8 +51,8 @@
                 android:layout_width="0dip"
                 android:layout_weight="1"
                 android:layout_height="32dp"
-                android:thumbTint="@color/colorTextPrimary"
-                android:progressTint="@color/colorTextPrimary"/>
+                android:thumbTint="@color/seekbar_thumb_tint"
+                android:progressTint="@color/seekbar_progress_tint"/>
 
             <TextView android:id="@+id/endTimeTextView"
                 android:textSize="14sp"

@@ -12,7 +12,7 @@ import javax.inject.Inject
  * Created by falcon on 17/1/18.
  *
  * ViewModel responsible for getting data from a [GetBookmarks]
- * and handling events from [BookmarkActivity].
+ * and handling events from [HighlighterActivity].
  */
 class BookmarkViewModel
 @Inject constructor(private val getBookmarks: GetBookmarks) : ViewModel() {

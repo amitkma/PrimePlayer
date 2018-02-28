@@ -3,15 +3,11 @@ package com.github.amitkma.primeplayer.features.videoplayer
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProvider
 import android.arch.lifecycle.ViewModelProviders
-import android.content.ComponentName
 import android.content.Context
-import android.content.ServiceConnection
 import android.graphics.PixelFormat
-import android.inputmethodservice.Keyboard
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
-import android.os.IBinder
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
@@ -24,7 +20,9 @@ import com.github.amitkma.calculator.Calculator
 import com.github.amitkma.dictionary.Dictionary
 import com.github.amitkma.primeplayer.R
 import com.github.amitkma.primeplayer.features.addbookmarks.AddBookmarkDialog
+import com.github.amitkma.primeplayer.features.addbookmarks.AddHighlightDialog
 import com.github.amitkma.primeplayer.features.bookmarks.domain.model.Bookmark
+import com.github.amitkma.primeplayer.features.highlighter.domain.model.HighlightedItem
 import com.github.amitkma.primeplayer.framework.extension.convertToString
 import com.github.amitkma.web.WebService
 import com.google.android.exoplayer2.*
@@ -40,7 +38,6 @@ import com.google.android.exoplayer2.util.Util
 import dagger.android.AndroidInjection
 import kotlinx.android.synthetic.main.activity_video_player.*
 import kotlinx.android.synthetic.main.item_playback_control.*
-import kotlinx.android.synthetic.main.popup_bookmark.*
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
@@ -48,7 +45,7 @@ import javax.inject.Inject
 /**
  * Created by falcon on 17/1/18.
  */
-class VideoPlayerActivity : AppCompatActivity(), AddBookmarkDialog.AddBookmarkDialogListener {
+class VideoPlayerActivity : AppCompatActivity(), AddHighlightDialog.AddHighlightListener, AddBookmarkDialog.AddBookmarkDialogListener {
 
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
@@ -72,8 +69,35 @@ class VideoPlayerActivity : AppCompatActivity(), AddBookmarkDialog.AddBookmarkDi
     private var shouldPlay: Boolean = true
 
     private var mBound: Boolean = false
+
     @Inject
     lateinit var popupBookmarkAdapter: PopupBookmarkAdapter
+
+    /**
+     * Properties related to video highlighter
+     */
+    // [BEGIN]
+    @Inject
+    lateinit var popupHighlighterAdapter: PopupHighlighterAdapter
+
+    private var highlightStartPosition: Long = 0
+
+    private var highlightStartWindow: Int = 0
+
+    private var highlightStopPosition: Long = 0
+
+    private var highlightStopWindow: Int = 0
+
+    private var isHighlighting: Boolean = false
+
+    private var shouldAllowHighlight = false
+
+    private var stopWindow: Int = 0
+
+    private var stopPosition: Long = 0
+
+
+    // [END]
 
     private val TAG: String = "VideoPlayerActivity";
 
@@ -89,6 +113,7 @@ class VideoPlayerActivity : AppCompatActivity(), AddBookmarkDialog.AddBookmarkDi
     private val DICTIONARY_VIEW = 102
     private val BOOKMARK_LIST_VIEW = 103
     private val SEARCH_VIEW = 104
+    private val HIGHLIGHTS_LIST_VIEW = 105
 
     private var CURRENTLY_VISIBLE = Int.MIN_VALUE
 
@@ -168,7 +193,7 @@ class VideoPlayerActivity : AppCompatActivity(), AddBookmarkDialog.AddBookmarkDi
                 PixelFormat.TRANSLUCENT)
 
         //Specify the popupView position
-        params.gravity = Gravity.TOP or Gravity.RIGHT   //Initially popupView will be added to top-left corner
+        params.gravity = Gravity.TOP or Gravity.END   //Initially popupView will be added to top-left corner
         params.x = 105
         params.y = 130
         params.dimAmount = 0.3f
@@ -184,6 +209,7 @@ class VideoPlayerActivity : AppCompatActivity(), AddBookmarkDialog.AddBookmarkDi
 
         calculatorImageView.setOnClickListener {
             val view = Calculator(this)
+            toggleActiveIcon(CURRENTLY_VISIBLE)
             if (isShowingPopup && CURRENTLY_VISIBLE != CALCULATOR_VIEW) {
                 removeView()
                 popupView = view.view
@@ -191,11 +217,14 @@ class VideoPlayerActivity : AppCompatActivity(), AddBookmarkDialog.AddBookmarkDi
             } else if (CURRENTLY_VISIBLE != CALCULATOR_VIEW) {
                 popupView = view.view
                 addView(CALCULATOR_VIEW)
+
             }
+            calculatorImageView.isActivated = true
         }
 
         dictionaryImageView.setOnClickListener {
             val view = Dictionary(this)
+            toggleActiveIcon(CURRENTLY_VISIBLE)
             if (isShowingPopup && CURRENTLY_VISIBLE != DICTIONARY_VIEW) {
                 removeView()
                 popupView = view.view
@@ -204,10 +233,12 @@ class VideoPlayerActivity : AppCompatActivity(), AddBookmarkDialog.AddBookmarkDi
                 popupView = view.view
                 addView(DICTIONARY_VIEW)
             }
+            dictionaryImageView.isActivated = true
         }
 
         searchImageView.setOnClickListener {
             val view = WebService(this)
+            toggleActiveIcon(CURRENTLY_VISIBLE)
             if (isShowingPopup && CURRENTLY_VISIBLE != SEARCH_VIEW) {
                 removeView()
                 popupView = view.view
@@ -216,9 +247,11 @@ class VideoPlayerActivity : AppCompatActivity(), AddBookmarkDialog.AddBookmarkDi
                 popupView = view.view
                 addView(SEARCH_VIEW)
             }
+            searchImageView.isActivated = true
         }
 
         bookmarkListImageView.setOnClickListener {
+            toggleActiveIcon(CURRENTLY_VISIBLE)
             if (isShowingPopup && CURRENTLY_VISIBLE != BOOKMARK_LIST_VIEW) {
                 removeView()
                 popupView = createBookmarkPopupWindow()
@@ -226,6 +259,33 @@ class VideoPlayerActivity : AppCompatActivity(), AddBookmarkDialog.AddBookmarkDi
             } else if (CURRENTLY_VISIBLE != BOOKMARK_LIST_VIEW) {
                 popupView = createBookmarkPopupWindow()
                 addView(BOOKMARK_LIST_VIEW)
+            }
+            bookmarkListImageView.isActivated = true
+        }
+
+        highlighterListImageView.setOnClickListener {
+            toggleActiveIcon(CURRENTLY_VISIBLE)
+            if (isShowingPopup && CURRENTLY_VISIBLE != HIGHLIGHTS_LIST_VIEW) {
+                removeView()
+                popupView = createHighlightsPopupWindow()
+                addView(HIGHLIGHTS_LIST_VIEW)
+            } else if (CURRENTLY_VISIBLE != HIGHLIGHTS_LIST_VIEW) {
+                popupView = createHighlightsPopupWindow()
+                addView(HIGHLIGHTS_LIST_VIEW)
+            }
+            highlighterListImageView.isActivated = true
+        }
+
+    }
+
+    private fun toggleActiveIcon(visibleView: Int) {
+        if (visibleView != Int.MIN_VALUE) {
+            when (visibleView) {
+                CALCULATOR_VIEW -> calculatorImageView.isActivated = false
+                DICTIONARY_VIEW -> dictionaryImageView.isActivated = false
+                SEARCH_VIEW -> searchImageView.isActivated = false
+                BOOKMARK_LIST_VIEW -> bookmarkListImageView.isActivated = false
+                HIGHLIGHTS_LIST_VIEW -> highlighterListImageView.isActivated = false
             }
         }
     }
@@ -257,12 +317,58 @@ class VideoPlayerActivity : AppCompatActivity(), AddBookmarkDialog.AddBookmarkDi
             if (it != null && it.isNotEmpty()) {
                 popupBookmarkAdapter.list = it
             } else if (it != null && it.isEmpty()) {
-                if (CURRENTLY_VISIBLE == BOOKMARK_LIST_VIEW)
-                    removeView()
                 Toast.makeText(this, "No bookmark for this video", Toast.LENGTH_SHORT).show()
             }
         }
         videoPlayerViewModel.getVideoBookmarks(path).observe(this, observer)
+        return view
+    }
+
+    private fun createHighlightsPopupWindow(): View {
+
+        val inflater: LayoutInflater = this.getSystemService(
+                android.content.Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+        val view = inflater.inflate(R.layout.popup_highlighter, null)
+
+        val addHighlighterImageView = view.findViewById<ImageView>(R.id.addHighlightImageButton)
+        addHighlighterImageView.isActivated = isHighlighting
+        addHighlighterImageView.setOnClickListener {
+            if (!isHighlighting) {
+                isHighlighting = true
+                highlightStartWindow = exoPlayer!!.currentWindowIndex
+                highlightStartPosition = Math.max(0, exoPlayer!!.contentPosition)
+                addHighlighterImageView.isActivated = true;
+            } else {
+                isHighlighting = false
+                addHighlighterImageView.isActivated = false
+                highlightStopWindow = exoPlayer!!.currentWindowIndex
+                highlightStopPosition = exoPlayer!!.contentPosition
+                shouldPlay = exoPlayer!!.playWhenReady
+                setPlayPause(false)
+                val dialogFragment = AddHighlightDialog.newInstance(
+                        videoName + " Highlight")
+                dialogFragment.show(fragmentManager, "bookmark_dialog")
+                removeView()
+            }
+        }
+
+        val recyclerView = view.findViewById<RecyclerView>(R.id.highlightPopupRecyclerView)
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.adapter = popupHighlighterAdapter
+        popupHighlighterAdapter.clickListener = {
+            exoPlayer!!.seekTo(it.startWindow, it.startPosition)
+            stopPosition = it.stopPosition
+            stopWindow = it.stopWindow
+            shouldAllowHighlight = true
+        }
+        val observer = Observer<List<HighlightedItem>> {
+            if (it != null && it.isNotEmpty()) {
+                popupHighlighterAdapter.list = it
+            } else if (it != null && it.isEmpty()) {
+                Toast.makeText(this, "No highlights for this video", Toast.LENGTH_SHORT).show()
+            }
+        }
+        videoPlayerViewModel.getVideoHighlights(path).observe(this, observer)
         return view
     }
 
@@ -344,6 +450,7 @@ class VideoPlayerActivity : AppCompatActivity(), AddBookmarkDialog.AddBookmarkDi
                         if (!fromUser) {
                             return
                         }
+                        shouldAllowHighlight = false
                         exoPlayer!!.seekTo((progress * 1000).toLong())
                     }
 
@@ -450,6 +557,13 @@ class VideoPlayerActivity : AppCompatActivity(), AddBookmarkDialog.AddBookmarkDi
         handler!!.post(object : Runnable {
             override fun run() {
                 if (exoPlayer != null) {
+                    if(shouldAllowHighlight){
+                        if(exoPlayer!!.contentPosition >= stopPosition && exoPlayer!!.currentWindowIndex>=stopWindow){
+                            shouldAllowHighlight = false
+                            setPlayPause(false)
+                            return
+                        }
+                    }
                     mediaControllerProgress.max = (exoPlayer!!.duration / 1000).toInt()
                     mediaControllerProgress.progress = (exoPlayer!!.contentPosition / 1000).toInt()
                     currentTimeTextView.text = exoPlayer!!.contentPosition.toInt().convertToString()
@@ -478,4 +592,17 @@ class VideoPlayerActivity : AppCompatActivity(), AddBookmarkDialog.AddBookmarkDi
         setPlayPause(shouldPlay)
         Toast.makeText(this, "Bookmark cancelled", Toast.LENGTH_SHORT).show()
     }
+
+    override fun onHighlightAddClick(bookmarkName: String) {
+        setPlayPause(shouldPlay)
+        videoPlayerViewModel.addHighlight(path, bookmarkName, thumbnail, highlightStartWindow,
+                highlightStartPosition, highlightStopWindow, highlightStopPosition)
+        Toast.makeText(this, "Highlight added", Toast.LENGTH_SHORT).show()
+    }
+
+    override fun onHighlightCancelClick() {
+        setPlayPause(shouldPlay)
+        Toast.makeText(this, "Highlight cancelled", Toast.LENGTH_SHORT).show()
+    }
+
 }

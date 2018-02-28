@@ -1,6 +1,7 @@
 package com.github.amitkma.primeplayer.injection.module
 
 import com.github.amitkma.primeplayer.features.bookmarks.BookmarkActivity
+import com.github.amitkma.primeplayer.features.bookmarks.HighlighterActivity
 import com.github.amitkma.primeplayer.features.videoplayer.VideoPlayerActivity
 import com.github.amitkma.primeplayer.features.videos.VideosActivity
 import com.github.amitkma.primeplayer.injection.scope.PerActivity
@@ -24,5 +25,9 @@ abstract class ActivityBindingModule {
     @PerActivity
     @ContributesAndroidInjector()
     abstract fun bindBookmarkActivity(): BookmarkActivity
+
+    @PerActivity
+    @ContributesAndroidInjector
+    abstract fun bindHighlighterActivity(): HighlighterActivity
 
 }

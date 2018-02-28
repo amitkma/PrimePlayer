@@ -28,7 +28,7 @@
             android:label="Prime Video"
             android:screenOrientation="landscape"/>
         <activity
-            android:name=".features.bookmarks.BookmarkActivity"
+            android:name=".features.bookmarks.HighlighterActivity"
             android:label="@string/bookmarks" />
     </application>
 

@@ -17,7 +17,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import com.github.amitkma.primeplayer.R
-import com.github.amitkma.primeplayer.features.bookmarks.BookmarkActivity
+import com.github.amitkma.primeplayer.features.bookmarks.HighlighterActivity
 import com.github.amitkma.primeplayer.features.videoplayer.VideoPlayerActivity
 import com.github.amitkma.primeplayer.features.videos.domain.model.Video
 import com.github.amitkma.primeplayer.framework.extension.verifyPermissions
@@ -211,7 +211,7 @@ class VideosActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         return when (item!!.itemId) {
             R.id.item_bookmark_menu -> {
-                val intent = Intent(this, BookmarkActivity::class.java)
+                val intent = Intent(this, HighlighterActivity::class.java)
                 startActivity(intent)
                 true
             }

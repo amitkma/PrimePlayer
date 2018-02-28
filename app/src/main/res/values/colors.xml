@@ -7,4 +7,10 @@
     <color name="colorTextSecondary">#7f1a18</color>
     <color name="translucentBackground">#ED000000</color>
     <color name="grey_dark">#CC000000</color>
+
+    <color name="dark_red">#BE1E2D</color>
+
+    <!--Playback control colors-->
+    <color name="seekbar_thumb_tint">@color/dark_red</color>
+    <color name="seekbar_progress_tint">@color/dark_red</color>
 </resources>

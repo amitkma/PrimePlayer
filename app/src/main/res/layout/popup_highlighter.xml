@@ -17,7 +17,7 @@
         android:paddingLeft="16dp"
         android:paddingRight="16dp"
         android:paddingTop="8dp"
-        android:text="@string/bookmarks"
+        android:text="@string/highlighted_items"
         android:textColor="#8000"
         android:textSize="14dp" />
 
@@ -25,12 +25,12 @@
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:layout_gravity="top|right"
-        android:id="@+id/addBookmarkImageButton"
-        android:src="@drawable/ic_bookmark_add_black_24dp"
+        android:id="@+id/addHighlightImageButton"
+        android:src="@drawable/highlighter_state"
         android:padding="12dp"/>
 
     <android.support.v7.widget.RecyclerView
-        android:id="@+id/bookmarkPopupRecyclerView"
+        android:id="@+id/highlightPopupRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="48dp">
