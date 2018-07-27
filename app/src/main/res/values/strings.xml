@@ -12,4 +12,6 @@
 
     <string name="highlighted_items">Highlights</string>
     <string name="highlight_name">Highlight Name</string>
+    <string name="saved_notes">Saved Notes</string>
+    <string name="add_note">Add Note</string>
 </resources>

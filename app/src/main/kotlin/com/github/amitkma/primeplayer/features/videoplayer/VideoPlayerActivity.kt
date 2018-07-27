@@ -8,21 +8,23 @@ import android.graphics.PixelFormat
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
+import android.support.design.widget.FloatingActionButton
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
+import android.text.TextUtils
 import android.util.Log
 import android.view.*
-import android.widget.ImageView
-import android.widget.SeekBar
-import android.widget.Toast
+import android.widget.*
 import com.github.amitkma.calculator.Calculator
 import com.github.amitkma.dictionary.Dictionary
+import com.github.amitkma.dictionary.model.Note
 import com.github.amitkma.primeplayer.R
 import com.github.amitkma.primeplayer.features.addbookmarks.AddBookmarkDialog
 import com.github.amitkma.primeplayer.features.addbookmarks.AddHighlightDialog
 import com.github.amitkma.primeplayer.features.bookmarks.domain.model.Bookmark
 import com.github.amitkma.primeplayer.features.highlighter.domain.model.HighlightedItem
+import com.github.amitkma.primeplayer.features.notepad.NotepadAdapter
 import com.github.amitkma.primeplayer.framework.extension.convertToString
 import com.github.amitkma.web.WebService
 import com.google.android.exoplayer2.*
@@ -38,6 +40,7 @@ import com.google.android.exoplayer2.util.Util
 import dagger.android.AndroidInjection
 import kotlinx.android.synthetic.main.activity_video_player.*
 import kotlinx.android.synthetic.main.item_playback_control.*
+import kotlinx.android.synthetic.main.popup_notepad.*
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
@@ -45,7 +48,8 @@ import javax.inject.Inject
 /**
  * Created by falcon on 17/1/18.
  */
-class VideoPlayerActivity : AppCompatActivity(), AddHighlightDialog.AddHighlightListener, AddBookmarkDialog.AddBookmarkDialogListener {
+class VideoPlayerActivity : AppCompatActivity(), AddHighlightDialog.AddHighlightListener,
+        AddBookmarkDialog.AddBookmarkDialogListener {
 
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
@@ -96,8 +100,10 @@ class VideoPlayerActivity : AppCompatActivity(), AddHighlightDialog.AddHighlight
 
     private var stopPosition: Long = 0
 
-
     // [END]
+
+    @Inject
+    lateinit var notepadAdapter: NotepadAdapter
 
     private val TAG: String = "VideoPlayerActivity";
 
@@ -114,6 +120,7 @@ class VideoPlayerActivity : AppCompatActivity(), AddHighlightDialog.AddHighlight
     private val BOOKMARK_LIST_VIEW = 103
     private val SEARCH_VIEW = 104
     private val HIGHLIGHTS_LIST_VIEW = 105
+    private val NOTEPAD_VIEW = 106
 
     private var CURRENTLY_VISIBLE = Int.MIN_VALUE
 
@@ -193,7 +200,8 @@ class VideoPlayerActivity : AppCompatActivity(), AddHighlightDialog.AddHighlight
                 PixelFormat.TRANSLUCENT)
 
         //Specify the popupView position
-        params.gravity = Gravity.TOP or Gravity.END   //Initially popupView will be added to top-left corner
+        params.gravity = Gravity.TOP or
+                Gravity.END   //Initially popupView will be added to top-left corner
         params.x = 105
         params.y = 130
         params.dimAmount = 0.3f
@@ -276,6 +284,16 @@ class VideoPlayerActivity : AppCompatActivity(), AddHighlightDialog.AddHighlight
             highlighterListImageView.isActivated = true
         }
 
+        notesImageView.setOnClickListener {
+            toggleActiveIcon(CURRENTLY_VISIBLE)
+            if (isShowingPopup && CURRENTLY_VISIBLE != NOTEPAD_VIEW) {
+                removeView()
+            }
+            popupView = createNotepadPopupWindow()
+            addView(NOTEPAD_VIEW)
+            notesImageView.isActivated = false
+        }
+
     }
 
     private fun toggleActiveIcon(visibleView: Int) {
@@ -290,6 +308,9 @@ class VideoPlayerActivity : AppCompatActivity(), AddHighlightDialog.AddHighlight
         }
     }
 
+    /**
+     * Bookmark popup view
+     */
     private fun createBookmarkPopupWindow(): View {
 
         val inflater: LayoutInflater = this.getSystemService(
@@ -324,6 +345,9 @@ class VideoPlayerActivity : AppCompatActivity(), AddHighlightDialog.AddHighlight
         return view
     }
 
+    /**
+     * Highlighter popup view
+     */
     private fun createHighlightsPopupWindow(): View {
 
         val inflater: LayoutInflater = this.getSystemService(
@@ -369,6 +393,88 @@ class VideoPlayerActivity : AppCompatActivity(), AddHighlightDialog.AddHighlight
             }
         }
         videoPlayerViewModel.getVideoHighlights(path).observe(this, observer)
+        return view
+    }
+
+    private var openNoteId: Int = Int.MIN_VALUE
+
+    /**
+     * Notepad popup view
+     */
+    private fun createNotepadPopupWindow(): View {
+        val inflater: LayoutInflater = this.getSystemService(
+                android.content.Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+        val view = inflater.inflate(R.layout.popup_notepad, null)
+        val addNote = view.findViewById<RelativeLayout>(R.id.addNoteView)
+        val savedNotes = view.findViewById<FrameLayout>(R.id.savedNotesView)
+        val addNoteButtonView = view.findViewById<FloatingActionButton>(R.id.addNoteButton)
+        val discardNote = view.findViewById<ImageView>(R.id.discardNoteImageView)
+        val noteTitleView = view.findViewById<EditText>(R.id.noteTitleEditText)
+        val noteDescView = view.findViewById<EditText>(R.id.noteDescEditText)
+        val saveNoteButtonView = view.findViewById<FloatingActionButton>(R.id.saveNoteButton)
+        addNote.visibility = View.GONE
+        savedNotes.visibility = View.VISIBLE
+        addNoteButtonView.setOnClickListener {
+            noteTitleView.setText("")
+            noteDescView.setText("")
+            addNote.visibility = View.VISIBLE
+            savedNotes.visibility = View.GONE
+            openNoteId = Int.MIN_VALUE
+        }
+
+        discardNote.setOnClickListener {
+            noteTitleView.setText("")
+            noteDescView.setText("")
+            addNote.visibility = View.GONE
+            savedNotes.visibility = View.VISIBLE
+            openNoteId = Int.MIN_VALUE
+        }
+
+        saveNoteButtonView.setOnClickListener {
+            if (!TextUtils.isEmpty(noteTitleView.getText().toString().trim())) {
+                val note = com.github.amitkma.primeplayer.features.notepad.domain.model.Note(noteTitleView.text.toString().trim(),
+                        noteDescView.text.toString().trim())
+                if(openNoteId != Int.MIN_VALUE){
+                    note.id = openNoteId
+                }
+                videoPlayerViewModel.saveNote(note)
+                noteTitleView.setText("")
+                noteDescView.setText("")
+                Toast.makeText(this, "Note saved successfully", Toast.LENGTH_SHORT).show()
+                addNote.visibility = View.GONE
+                savedNotes.visibility = View.VISIBLE
+            } else {
+                Toast.makeText(this, "Title can not be empty", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        val noteObserver =
+                Observer<com.github.amitkma.primeplayer.features.notepad.domain.model.Note> {
+                    if (it != null) {
+                        openNoteId = it.id
+                        noteTitleView.setText(it.title)
+                        noteDescView.setText(it.noteText)
+                    }
+                }
+
+        val recyclerView = view.findViewById<RecyclerView>(R.id.notepadPopupRecyclerView)
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.adapter = notepadAdapter
+        notepadAdapter.clickListener = {
+            addNote.visibility = View.VISIBLE
+            savedNotes.visibility = View.GONE
+            videoPlayerViewModel.getNoteById(it.id).observe(this, noteObserver)
+        }
+
+        val noteListObserver =
+                Observer<List<com.github.amitkma.primeplayer.features.notepad.domain.model.Note>> {
+                    if (it != null && it.isNotEmpty()) {
+                        notepadAdapter.list = it
+                    } else if (it != null && it.isEmpty()) {
+                        Toast.makeText(this, "No notes saved yet", Toast.LENGTH_SHORT).show()
+                    }
+                }
+        videoPlayerViewModel.getNotes().observe(this, noteListObserver)
         return view
     }
 
@@ -557,8 +663,8 @@ class VideoPlayerActivity : AppCompatActivity(), AddHighlightDialog.AddHighlight
         handler!!.post(object : Runnable {
             override fun run() {
                 if (exoPlayer != null) {
-                    if(shouldAllowHighlight){
-                        if(exoPlayer!!.contentPosition >= stopPosition && exoPlayer!!.currentWindowIndex>=stopWindow){
+                    if (shouldAllowHighlight) {
+                        if (exoPlayer!!.contentPosition >= stopPosition && exoPlayer!!.currentWindowIndex >= stopWindow) {
                             shouldAllowHighlight = false
                             setPlayPause(false)
                             return

@@ -1,4 +1,4 @@
-package com.github.amitkma.primeplayer.features.addbookmarks.domain.usecase
+package com.github.amitkma.primeplayer.features.addhighlight.domain.usecase
 
 import com.github.amitkma.primeplayer.features.addbookmarks.domain.model.BookmarkParam
 import com.github.amitkma.primeplayer.features.bookmarks.domain.model.Bookmark

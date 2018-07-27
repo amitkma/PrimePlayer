@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.design.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/videoPlayerFrame"
     android:layout_width="match_parent"
@@ -15,20 +16,20 @@
             android:id="@+id/playerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:controller_layout_id="@layout/item_playback_control" />
+            app:controller_layout_id="@layout/item_playback_control"/>
 
         <LinearLayout
             android:id="@+id/toolsController"
             android:layout_width="@dimen/tools_dock_width"
             android:layout_height="match_parent"
             android:layout_gravity="end|center"
-            android:layout_marginTop="@dimen/toolbar_margin_top"
             android:layout_marginBottom="@dimen/toolbar_margin_bottom"
+            android:layout_marginTop="@dimen/toolbar_margin_top"
             android:background="#DAFFFFFF"
-            android:showDividers="middle"
-            android:dividerPadding="4dp"
             android:divider="?android:dividerHorizontal"
-            android:orientation="vertical">
+            android:dividerPadding="4dp"
+            android:orientation="vertical"
+            android:showDividers="middle">
 
             <ImageView
                 android:id="@+id/calculatorImageView"
@@ -37,7 +38,7 @@
                 android:layout_weight="1"
                 android:paddingLeft="12dp"
                 android:paddingRight="12dp"
-                android:src="@drawable/calculator_state" />
+                android:src="@drawable/calculator_state"/>
 
             <ImageView
                 android:id="@+id/dictionaryImageView"
@@ -46,7 +47,7 @@
                 android:layout_weight="1"
                 android:paddingLeft="12dp"
                 android:paddingRight="12dp"
-                android:src="@drawable/dictionary_state" />
+                android:src="@drawable/dictionary_state"/>
 
             <ImageView
                 android:id="@+id/searchImageView"
@@ -55,7 +56,7 @@
                 android:layout_weight="1"
                 android:paddingLeft="12dp"
                 android:paddingRight="12dp"
-                android:src="@drawable/search_state" />
+                android:src="@drawable/search_state"/>
 
             <ImageView
                 android:id="@+id/bookmarkListImageView"
@@ -64,7 +65,7 @@
                 android:layout_weight="1"
                 android:paddingLeft="12dp"
                 android:paddingRight="12dp"
-                android:src="@drawable/bookmark_state" />
+                android:src="@drawable/bookmark_state"/>
             <ImageView
                 android:id="@+id/highlighterListImageView"
                 android:layout_width="match_parent"
@@ -72,7 +73,15 @@
                 android:layout_weight="1"
                 android:paddingLeft="12dp"
                 android:paddingRight="12dp"
-                android:src="@drawable/ic_highlighter_list_white_24dp" />
+                android:src="@drawable/ic_highlighter_list_white_24dp"/>
+            <ImageView
+                android:id="@+id/notesImageView"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:paddingLeft="12dp"
+                android:paddingRight="12dp"
+                android:src="@drawable/ic_notes"/>
         </LinearLayout>
 
     </FrameLayout>

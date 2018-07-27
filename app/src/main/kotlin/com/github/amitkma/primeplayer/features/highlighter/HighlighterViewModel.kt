@@ -11,14 +11,14 @@ import javax.inject.Inject
 /**
  * Created by falcon on 17/1/18.
  *
- * ViewModel responsible for getting data from a [GetHighlights]
+ * ViewModel responsible for getting data from a [GetNotes]
  * and handling events from [HighlighterActivity].
  */
 class HighlighterViewModel
 @Inject constructor(private val getHighlightedItems: GetHighlights) : ViewModel() {
 
     /**
-     * [LiveData] to keep data retrieved from the [GetHighlights].
+     * [LiveData] to keep data retrieved from the [GetNotes].
      */
     private var highlightedItemsLiveData: MutableLiveData<List<HighlightedItem>> = MutableLiveData()
 
@@ -36,7 +36,7 @@ class HighlighterViewModel
     }
 
     /**
-     * Wrapper of [UseCase.UseCaseCallback] to listen from [GetHighlights]
+     * Wrapper of [UseCase.UseCaseCallback] to listen from [GetNotes]
      */
     inner class UseCaseCallbackWrapper : UseCase.UseCaseCallback<List<HighlightedItem>> {
         override fun onSuccess(response: List<HighlightedItem>) {
