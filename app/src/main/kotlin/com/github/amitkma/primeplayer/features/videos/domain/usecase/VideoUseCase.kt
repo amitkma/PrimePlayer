@@ -8,6 +8,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
+ * Created by falcon on 15/1/18.
+ *
  * UseCase to get videos from storage.
  */
 @Singleton
@@ -19,7 +21,8 @@ class VideoUseCase
         executors.disk().execute({
             val list = videosRepository.videos()
             if (getUseCaseCallback() != null) {
-                getUseCaseCallback()!!.onSuccess(list)
+                executors.ui().execute({ getUseCaseCallback()!!.onSuccess(list) })
+
             }
         })
     }

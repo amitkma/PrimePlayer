@@ -27,7 +27,8 @@ android {
         abortOnError false
         ignoreWarnings true
         disable 'InvalidPackage'            //Some libraries have issues with this.
-        disable 'OldTargetApi'              //Lint gives this warning but SDK 20 would be Android L Beta.
+        disable 'OldTargetApi'
+        //Lint gives this warning but SDK 20 would be Android L Beta.
         disable 'IconDensities'             //For testing purpose. This is safe to remove.
         disable 'IconMissingDensityFolder'  //For testing purpose. This is safe to remove.
     }
@@ -57,6 +58,10 @@ dependencies {
     // Application Dependencies
     implementation mainApplication.kotlin
 
+    implementation project(':calculator')
+    implementation project(':dictionary')
+    implementation project(':web')
+
     implementation mainApplication.support.appCompat
     implementation mainApplication.support.v4
     implementation mainApplication.support.cardView
@@ -72,7 +77,6 @@ dependencies {
 
     implementation mainApplication.room.runtime
     kapt mainApplication.room.compiler
-
     implementation mainApplication.lifecycle.runtime
     implementation mainApplication.lifecycle.extensions
     kapt mainApplication.lifecycle.compiler
@@ -84,6 +88,8 @@ dependencies {
 
     implementation development.timber
 
+    implementation mainApplication.firebase.crash
+
     // Unit & Integration Test Dependencies
     testImplementation unitTesting.junit
     testImplementation unitTesting.kotlin
@@ -91,8 +97,7 @@ dependencies {
     testImplementation unitTesting.robolectric
     testImplementation unitTesting.mockito
     testImplementation unitTesting.kluent
-
-    testImplementation (archTesting.core, {
+    testImplementation(archTesting.core, {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
 
@@ -105,19 +110,18 @@ dependencies {
     androidTestImplementation acceptanceTesting.testRunner
     androidTestImplementation acceptanceTesting.testRules
     androidTestImplementation acceptanceTesting.annotations
-    androidTestImplementation (acceptanceTesting.espressoCore, {
+    androidTestImplementation(acceptanceTesting.espressoCore, {
         exclude group: 'com.android.support', module: 'support-annotations'
         exclude group: 'com.google.code.findbugs', module: 'jsr305'
     })
-    androidTestImplementation (acceptanceTesting.espressoIntents, {
+    androidTestImplementation(acceptanceTesting.espressoIntents, {
         exclude group: 'com.android.support', module: 'support-annotations'
         exclude group: 'com.google.code.findbugs', module: 'jsr305'
     })
-    androidTestImplementation (acceptanceTesting.espressoContrib, {
+    androidTestImplementation(acceptanceTesting.espressoContrib, {
         exclude group: 'com.android.support', module: 'support-annotations'
         exclude group: 'com.google.code.findbugs', module: 'jsr305'
     })
-
     androidTestImplementation acceptanceTesting.dexmaker
     androidTestImplementation acceptanceTesting.mockito
 
@@ -128,3 +132,5 @@ dependencies {
 kapt {
     generateStubs = true
 }
+
+apply plugin: 'com.google.gms.google-services'

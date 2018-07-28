@@ -1,6 +1,17 @@
 <resources>
-    <string name="app_name">PrimePlayer</string>
+    <string name="app_name">Prime Player</string>
     <string name="permission_storage_rationale">Storage permission is needed to load media files.
     </string>
     <string name="ok">OK</string>
+    <string name="retry">Retry</string>
+    <string name="bookmarks">Bookmarks</string>
+    <string name="add_bookmark">Add Bookmark</string>
+    <string name="bookmark_name">Bookmark Name</string>
+    <string name="add">Add</string>
+    <string name="cancel">Cancel</string>
+
+    <string name="highlighted_items">Highlights</string>
+    <string name="highlight_name">Highlight Name</string>
+    <string name="saved_notes">Saved Notes</string>
+    <string name="add_note">Add Note</string>
 </resources>

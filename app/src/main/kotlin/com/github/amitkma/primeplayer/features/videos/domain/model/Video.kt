@@ -1,7 +1,6 @@
 package com.github.amitkma.primeplayer.features.videos.domain.model
 
-import android.arch.persistence.room.Entity
-import android.arch.persistence.room.PrimaryKey
-
-@Entity
-data class Video(@PrimaryKey val path: String, val thumbnail: String)
+/**
+ * Created by falcon on 15/1/18.
+ */
+data class Video(val name: String, val path: String, val thumbnail: String)

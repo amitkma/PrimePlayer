@@ -6,6 +6,8 @@ import java.util.concurrent.ThreadFactory
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
+ * Created by falcon on 15/1/18.
+ *
  * Implementation of a [Executor] to execute all disk related task on a single thread.
  */
 internal class DiskExecutor(threadIdentifier: String) : Executor {

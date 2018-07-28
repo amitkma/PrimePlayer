@@ -6,8 +6,9 @@ import javax.inject.Inject
 import javax.inject.Provider
 import javax.inject.Singleton
 
-
 /**
+ * Created by falcon on 15/1/18.
+ *
  * Factory to provide all the [ViewModel] for the app.
  */
 @Singleton
@@ -17,7 +18,7 @@ class PrimePlayerViewModelFactory
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-        var creator: Provider<ViewModel>? = creators.get(modelClass)
+        var creator: Provider<ViewModel>? = creators[modelClass]
         if (creator == null) {
             for ((key, value) in creators) {
                 if (modelClass.isAssignableFrom(key)) {

@@ -8,6 +8,10 @@ import android.widget.ImageView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 
+/**
+ * Created by falcon on 15/1/18.
+ */
+
 // Function to cancel view transition.
 fun View.cancelTransition() {
     transitionName = null
@@ -23,3 +27,6 @@ fun ViewGroup.inflate(@LayoutRes layoutRes: Int): View = LayoutInflater.from(con
 // Function to load image from a url using Glide.
 fun ImageView.loadFromUrl(url: String) = Glide.with(this.context.applicationContext)
         .load(url).transition(DrawableTransitionOptions.withCrossFade()).into(this)!!
+// Function to load image from a uri using Glide
+fun ImageView.loadFromUri(path: String) = Glide.with(this.context.applicationContext)
+        .load("file"+path).transition(DrawableTransitionOptions.withCrossFade()).into(this)!!

@@ -4,23 +4,33 @@ import android.Manifest
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProvider
 import android.arch.lifecycle.ViewModelProviders
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.v4.app.ActivityCompat
 import android.support.v7.app.AppCompatActivity
+import android.support.v7.widget.RecyclerView
+import android.support.v7.widget.StaggeredGridLayoutManager
 import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import com.github.amitkma.primeplayer.R
+import com.github.amitkma.primeplayer.features.bookmarks.HighlighterActivity
+import com.github.amitkma.primeplayer.features.videoplayer.VideoPlayerActivity
 import com.github.amitkma.primeplayer.features.videos.domain.model.Video
 import com.github.amitkma.primeplayer.framework.extension.verifyPermissions
 import com.github.amitkma.primeplayer.framework.vo.Resource
 import com.github.amitkma.primeplayer.framework.vo.ResourceState
 import dagger.android.AndroidInjection
+import kotlinx.android.synthetic.main.toolbar.*
 import timber.log.Timber
 import javax.inject.Inject
 
-
+/**
+ * Created by falcon on 15/1/18.
+ */
 class VideosActivity : AppCompatActivity() {
 
     /**
@@ -51,12 +61,18 @@ class VideosActivity : AppCompatActivity() {
 
     private lateinit var view: View
 
+    @Inject lateinit var videosAdapter: VideosAdapter
+
+    private lateinit var videosRecyclerView: RecyclerView
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_videos)
 
         // Inject this activity using Dagger
         AndroidInjection.inject(this)
+        setSupportActionBar(toolbar)
+        initializeView()
 
         videoViewModel = ViewModelProviders.of(this, viewModelFactory)
                 .get(VideoViewModel::class.java)
@@ -67,6 +83,22 @@ class VideosActivity : AppCompatActivity() {
             })
         } else {
             requestPermission()
+        }
+    }
+
+    private fun initializeView() {
+        videosRecyclerView = findViewById(R.id.videoList)
+        videosRecyclerView.layoutManager = StaggeredGridLayoutManager(3,
+                StaggeredGridLayoutManager.VERTICAL)
+        videosRecyclerView.adapter = videosAdapter
+        videosAdapter.clickListener = { video ->
+            run {
+                val intent = Intent(this, VideoPlayerActivity::class.java)
+                intent.putExtra("video_path", video.path)
+                intent.putExtra("video_name", video.name)
+                intent.putExtra("video_thumb", video.thumbnail)
+                startActivity(intent)
+            }
         }
     }
 
@@ -88,10 +120,9 @@ class VideosActivity : AppCompatActivity() {
     }
 
     private fun setupScreenForSuccess(data: List<Video>?) {
-        Timber.d("SUCCESS SCREEN")
         if (data != null && data.isNotEmpty()) {
-            Timber.d("data lengths is " + data.size)
-            // TODO: Show videos list to view.
+            Timber.d("Size:" +data.size)
+            videosAdapter.list = data
         } else {
             Timber.d("data is empty")
             // TODO: Show empty list.
@@ -99,23 +130,17 @@ class VideosActivity : AppCompatActivity() {
     }
 
     private fun setupScreenForError(message: String?) {
-        Timber.d("ERROR SCREEN")
+        Timber.e(message)
         // TODO: Show error screen.
-    }
-
-    private fun setupViewListeners() {
-        // TODO: Set view click listener.
     }
 
     /*private val emptyListener = object : EmptyListener {
         override fun onCheckAgainClicked() {
-            browseBufferoosViewModel.fetchBufferoos()
         }
     }
 
     private val errorListener = object : ErrorListener {
         override fun onTryAgainClicked() {
-            browseBufferoosViewModel.fetchBufferoos()
         }
     }*/
 
@@ -174,6 +199,25 @@ class VideosActivity : AppCompatActivity() {
             }
         } else {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        val menuInflater = menuInflater
+        menuInflater.inflate(R.menu.menu_videos, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        return when (item!!.itemId) {
+            R.id.item_bookmark_menu -> {
+                val intent = Intent(this, HighlighterActivity::class.java)
+                startActivity(intent)
+                true
+            }
+            else -> {
+                super.onOptionsItemSelected(item)
+            }
         }
     }
 }

@@ -9,7 +9,10 @@ import dagger.android.HasActivityInjector
 import timber.log.Timber
 import javax.inject.Inject
 
-class PrimePlayerApplication: Application(), HasActivityInjector {
+/**
+ * Created by falcon on 15/1/18.
+ */
+class PrimePlayerApplication : Application(), HasActivityInjector {
 
     @Inject lateinit var activityDispatchingAndroidInjector: DispatchingAndroidInjector<Activity>
 
